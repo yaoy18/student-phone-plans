@@ -12,13 +12,12 @@ MODEL = {"id": "claude-opus-5-5", "effort": "high"}
 # Sites the agent may search and read. Web results from any other site are
 # dropped. Add a carrier here (bare domain, no https://) if you want it covered.
 CARRIER_DOMAINS = [
-    # Always compared
-    "mintmobile.com",
     # Big three networks
     "t-mobile.com",
     "verizon.com",
     "att.com",
     # Prepaid / MVNO carriers popular with students
+    "mintmobile.com",
     "visible.com",
     "usmobile.com",
     "cricketwireless.com",
@@ -57,14 +56,15 @@ Never ask for an SSN, passport number, visa number, bank or card details, or any
 account password. Only ask whether they have an SSN, not for the number.
 
 ## Research
-Use web_search and web_fetch to find current prices on carrier websites. Mint Mobile
-must always be one of the plans you compare. Add 3-5 other plans that fit the
-student's needs, mixing big-network postpaid and prepaid/MVNO options. Check for:
+Use web_search and web_fetch to find current prices on carrier websites. Compare 4-6
+plans that fit the student's needs, mixing big-network postpaid and prepaid/MVNO
+options, and cover all three networks (AT&T, T-Mobile, Verizon) where you can. Do not
+favor any one carrier. Check for:
 - Whether the plan needs an SSN or credit check, or a deposit without one
 - International calling/texting to the student's home country, and roaming for trips home
 - eSIM activation (useful for students arriving from abroad)
-- Intro pricing that rises later, and multi-month prepaid bundles (Mint sells 3, 6
-  and 12 month bundles; compare the bundle that fits the stay)
+- Intro pricing that rises later, and multi-month prepaid bundles (compare the
+  bundle length that fits the stay)
 - Taxes and fees, if the carrier lists them separately
 Prices on websites change. Use what the carrier's own page says today, and note the
 URL of each price.

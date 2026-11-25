@@ -2,7 +2,7 @@
 
 A Claude agent that compares US cell phone plans for international students. It
 asks for your monthly budget and situation, looks up today's prices on carrier
-websites (Mint Mobile is always included), and returns a table with each plan's
+websites, and returns a table with each plan's
 monthly cost, predicted annual cost, total for your stay, and whether it fits
 your budget, plus a recommendation.
 

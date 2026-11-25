@@ -1,6 +1,6 @@
 {
   "checked": "2026-11-24",
-  "notes": "One-line monthly prices in USD. lineTotals = total monthly price for that many lines; otherwise extra lines cost addLine each. promo.price is per line for promo.months, then price applies. upfrontMonths = months you must prepay. fastGB = full-speed data per month (999 = no stated cap). intlWide = calls to many countries are included in the price.",
+  "notes": "One-line monthly prices in USD. lineTotals = total monthly price for that many lines; otherwise extra lines cost addLine each. promo.price applies to the first line for promo.months (extra lines pay promo.addLine, or promo.price if absent), then price applies. upfrontMonths = months you must prepay at once. fastGB = full-speed data per month (999 = no stated cap). intlWide = calls to other countries are included in the price.",
   "plans": [
     {
       "id": "mint-6",
@@ -122,7 +122,7 @@
       "carrier": "US Mobile",
       "plan": "Light",
       "network": "Choice of 3 networks",
-      "data": "2GB, shared",
+      "data": "2GB",
       "advertised": 10,
       "price": 10,
       "addLine": 8,
@@ -295,7 +295,7 @@
       "carrier": "AT&T Prepaid",
       "plan": "Unlimited",
       "network": "AT&T",
-      "data": "Unlimited, capped at 3Mbps",
+      "data": "Unlimited, slow (3Mbps)",
       "advertised": 25,
       "price": 25,
       "addLine": 25,
@@ -308,7 +308,7 @@
       "link": "https://www.att.com/prepaid/plans/",
       "source": "https://www.att.com/prepaid/plans/",
       "unlimited": true,
-      "fastGB": 30,
+      "fastGB": 0,
       "intlWide": false
     },
     {
@@ -359,6 +359,109 @@
       "unlimited": true,
       "fastGB": 5,
       "intl": "Calls to Canada and Mexico",
+      "intlWide": false
+    },
+    {
+      "id": "vz-pre-15",
+      "carrier": "Verizon Prepaid",
+      "plan": "15 GB",
+      "network": "Verizon",
+      "data": "15GB",
+      "advertised": 35,
+      "promo": {
+        "price": 45,
+        "months": 1,
+        "label": "First month is $45"
+      },
+      "price": 35,
+      "addLine": 35,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "notes": [
+        "Price needs Auto Pay"
+      ],
+      "link": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "source": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "unlimited": false,
+      "fastGB": 15,
+      "intl": "Calls to Mexico and Canada",
+      "intlWide": false
+    },
+    {
+      "id": "vz-pre-unl",
+      "carrier": "Verizon Prepaid",
+      "plan": "Unlimited",
+      "network": "Verizon",
+      "data": "Unlimited",
+      "advertised": 50,
+      "promo": {
+        "price": 60,
+        "addLine": 40,
+        "months": 1,
+        "label": "First month is $60"
+      },
+      "price": 50,
+      "addLine": 30,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "notes": [
+        "Price needs Auto Pay"
+      ],
+      "link": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "source": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "unlimited": true,
+      "fastGB": 999,
+      "intl": "Calls to Mexico and Canada",
+      "intlWide": false
+    },
+    {
+      "id": "vz-pre-plus",
+      "carrier": "Verizon Prepaid",
+      "plan": "Unlimited Plus",
+      "network": "Verizon",
+      "data": "Unlimited, 50GB fast",
+      "advertised": 60,
+      "promo": {
+        "price": 70,
+        "addLine": 50,
+        "months": 1,
+        "label": "First month is $70"
+      },
+      "price": 60,
+      "addLine": 40,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "notes": [
+        "Price needs Auto Pay"
+      ],
+      "link": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "source": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "unlimited": true,
+      "fastGB": 50,
+      "intl": "180 minutes a month to one country you pick",
+      "intlWide": true
+    },
+    {
+      "id": "vz-welcome",
+      "carrier": "Verizon",
+      "plan": "Unlimited Welcome",
+      "network": "Verizon",
+      "data": "Unlimited",
+      "advertised": 65,
+      "price": 65,
+      "lineTotals": {
+        "4": 120
+      },
+      "taxesIncluded": false,
+      "noCreditCheck": false,
+      "notes": [
+        "Postpaid: may ask for an SSN or a deposit",
+        "Price needs AutoPay"
+      ],
+      "link": "https://www.verizon.com/plans/unlimited/",
+      "source": "https://www.usmobile.com/blog/cell-phone-plans-november-2026/",
+      "unlimited": true,
+      "fastGB": 999,
       "intlWide": false
     }
   ],

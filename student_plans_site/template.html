@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
 <style>
-/* Layout: one narrow column, two views. Find: five inputs, three picks, one table. Compare: two plans side by side. */
+/* Layout: one narrow column, two views. Find: five inputs, three picks, a ranked bar list. Compare: two plans, two charts, one table. */
 :root {
   --bg: #fbfcfc;
   --surface: #f1f4f4;
@@ -11,105 +11,154 @@
   --line: #dde3e2;
   --accent: #0b6b5d;
   --accent-soft: #e2f1ee;
+  --series-a: #2a78d6;   /* chart color 1: advertised price, or plan A */
+  --series-b: #eb6834;   /* chart color 2: extra cost, or plan B */
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #101615; --surface: #19211f; --fg: #e8eeed; --muted: #94a3a0;
-    --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b; color-scheme: dark;
+    --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b;
+    --series-a: #3987e5; --series-b: #d95926; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #101615; --surface: #19211f; --fg: #e8eeed; --muted: #94a3a0;
-  --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b; color-scheme: dark;
+  --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b;
+  --series-a: #3987e5; --series-b: #d95926; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--fg);
-  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
 }
 .page {
   max-width: 760px; margin: 0 auto;
   padding-block: 40px 56px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: flex; flex-direction: column; gap: 36px;
+  display: flex; flex-direction: column; gap: 32px;
 }
 h1 { font-family: var(--font-display); font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
 .sub { color: var(--muted); margin: 6px 0 0; }
-.view { display: flex; flex-direction: column; gap: 36px; }
-nav { display: flex; gap: 20px; border-bottom: 1px solid var(--line); }
-nav a { color: var(--muted); text-decoration: none; padding: 0 0 10px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-nav a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--fg); }
-.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 24px; }
-.verdict { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
-table.cmp { min-width: 0; table-layout: fixed; }
-table.cmp th, table.cmp td { text-align: left; white-space: normal; padding: 12px 12px 12px 0; overflow-wrap: anywhere; }
-table.cmp thead th { font-size: 15px; font-weight: 600; color: var(--fg); padding-bottom: 12px; vertical-align: top; }
-table.cmp tbody th { width: 30%; font-size: 13px; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line); vertical-align: top; }
-table.cmp td.best { color: var(--accent); font-weight: 600; }
-table.cmp tr.key td { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
 .num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.view { display: flex; flex-direction: column; gap: 32px; }
+a { color: var(--accent); }
+a:focus-visible, select:focus-visible, summary:focus-visible, .chart:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+nav { display: flex; gap: 24px; border-bottom: 1px solid var(--line); }
+nav a { color: var(--muted); text-decoration: none; padding: 12px 0; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+nav a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--fg); }
 
 .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px 24px; align-items: end; }
-.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.field label { font-size: 13px; color: var(--muted); }
-.money { display: flex; align-items: baseline; gap: 4px; border-bottom: 2px solid var(--fg); height: 40px; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 24px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font-size: 14px; color: var(--muted); }
+.money { display: flex; align-items: center; gap: 4px; border-bottom: 2px solid var(--fg); height: 48px; }
 .money span { font-family: var(--font-display); font-size: 24px; }
 .money input {
   font-family: var(--font-display); font-size: 24px; font-weight: 500; color: var(--fg);
-  background: transparent; border: 0; outline: 0; width: 100%; min-width: 0; padding: 0;
+  background: transparent; border: 0; outline: 0; width: 100%; min-width: 0; height: 100%; padding: 0;
   font-variant-numeric: tabular-nums; -moz-appearance: textfield;
 }
 .money input::-webkit-outer-spin-button, .money input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.money:focus-within { border-color: var(--accent); }
-.money small { color: var(--muted); white-space: nowrap; }
+.money:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; border-color: var(--accent); }
+.money small { color: var(--muted); white-space: nowrap; font-size: 14px; }
 select {
-  font: inherit; font-size: 15px; color: var(--fg); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 8px; height: 40px; padding: 0 10px; width: 100%;
+  font: inherit; font-size: 16px; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--muted); border-radius: 8px; height: 48px; padding: 0 10px; width: 100%;
 }
-a:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.hint { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+.hint { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
 
 .picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
 .pick { background: var(--accent-soft); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.pick .why { font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
+.pick .why { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
 .pick .name { font-weight: 600; }
 .pick .price { font-family: var(--font-display); font-size: 24px; font-weight: 600; }
-.pick .price small { font-family: var(--font-body); font-size: 13px; font-weight: 400; color: var(--muted); }
-.pick .meta { font-size: 13px; color: var(--muted); }
-.pick a { color: var(--accent); font-size: 13px; font-weight: 500; margin-top: auto; padding-top: 6px; }
+.pick .price small { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--muted); }
+.pick .meta { font-size: 14px; color: var(--muted); }
+.links { display: flex; gap: 20px; margin-top: auto; }
+.links a { font-size: 14px; font-weight: 500; padding: 12px 0 0; }
 .empty { background: var(--surface); border-radius: 10px; padding: 16px; color: var(--muted); }
 
-.scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 560px; }
-th { text-align: right; font-size: 12px; font-weight: 500; color: var(--muted); padding: 0 0 8px 12px; white-space: nowrap; vertical-align: bottom; }
-th:first-child, td:first-child { text-align: left; padding-left: 0; }
-td { text-align: right; padding: 12px 0 12px 12px; border-top: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
-td:first-child { white-space: normal; }
-td .name { font-weight: 600; }
-td .name a { color: inherit; text-decoration: none; }
-td .name a:hover { text-decoration: underline; }
-td .meta { font-size: 12.5px; color: var(--muted); }
-td .then, .diff { font-size: 12.5px; color: var(--muted); display: block; }
-td.real { font-weight: 600; }
-tr.over td { color: var(--muted); }
-tr.over td .name, tr.over td.real { font-weight: 500; }
-.tag { display: inline-block; font-size: 11.5px; padding: 1px 6px; border-radius: 4px; background: var(--surface); color: var(--muted); margin-left: 4px; white-space: nowrap; }
-tr.fits .tag { background: var(--accent-soft); color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); margin: 0 0 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.sw.a { background: var(--series-a); } .sw.b { background: var(--series-b); }
+.sw.mark { width: 2px; height: 16px; border-radius: 0; background: var(--fg); }
 
-footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.plans { list-style: none; margin: 0; padding: 0; }
+.plan { border-top: 1px solid var(--line); padding: 16px 0 8px; display: flex; flex-direction: column; gap: 6px; }
+.plan .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.plan .name { font-weight: 600; }
+.plan .name a { color: inherit; text-decoration: none; }
+.plan .name a:hover { text-decoration: underline; }
+.plan .cost { font-family: var(--font-display); font-weight: 600; font-size: 18px; white-space: nowrap; }
+.plan .cost small { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.plan .meta { font-size: 14px; color: var(--muted); }
+.tag { display: inline-block; font-size: 13px; padding: 1px 6px; border-radius: 4px; background: var(--surface); color: var(--muted); margin-left: 4px; white-space: nowrap; font-weight: 400; }
+.plan.fits .tag { background: var(--accent-soft); color: var(--accent); }
+.plan.over .name, .plan.over .cost { color: var(--muted); font-weight: 500; }
+.plan.over .track { opacity: 0.55; }
+.track { position: relative; display: flex; gap: 2px; height: 12px; margin: 6px 0 2px; }
+.seg { height: 12px; min-width: 3px; }
+.seg.a { background: var(--series-a); }
+.seg.b { background: var(--series-b); }
+.seg:last-of-type { border-radius: 0 4px 4px 0; }
+.seg:hover { filter: brightness(1.15); }
+.budget-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--fg); }
+details summary { font-size: 14px; color: var(--muted); cursor: pointer; padding: 10px 0; width: fit-content; }
+details p { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+
+.verdict { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
+.chart-title { font-weight: 600; margin: 0 0 2px; }
+.chart-sub { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+.chart { position: relative; touch-action: pan-y; border-radius: 6px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 12px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.chart .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .ln.a { stroke: var(--series-a); } .chart .ln.b { stroke: var(--series-b); }
+.chart .dot { stroke: var(--bg); stroke-width: 2; }
+.chart .dot.a { fill: var(--series-a); } .chart .dot.b { fill: var(--series-b); }
+.chart .cross { stroke: var(--muted); stroke-width: 1; }
+.grp { display: flex; flex-direction: column; gap: 2px; margin-bottom: 14px; }
+.grp-label { font-size: 14px; color: var(--muted); margin-bottom: 2px; }
+.barrow { display: flex; align-items: center; gap: 8px; }
+.bar { height: 14px; min-width: 3px; border-radius: 0 4px 4px 0; flex: none; }
+.bar.a { background: var(--series-a); } .bar.b { background: var(--series-b); }
+.barrow:hover .bar { filter: brightness(1.15); }
+.barrow .val { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+#tip {
+  position: fixed; z-index: 20; pointer-events: none; max-width: 260px;
+  background: var(--fg); color: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.4;
+}
+#tip b { font-weight: 600; font-variant-numeric: tabular-nums; }
+#tip .key { display: inline-block; width: 12px; height: 2px; vertical-align: middle; margin-right: 6px; }
+#tip .key.a { background: var(--series-a); } #tip .key.b { background: var(--series-b); }
+
+table.cmp { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.cmp th, table.cmp td { text-align: left; padding: 12px 12px 12px 0; overflow-wrap: break-word; vertical-align: top; }
+table.cmp thead th { font-weight: 600; padding-bottom: 12px; }
+table.cmp tbody th { width: 30%; font-size: 14px; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line); }
+table.cmp td { border-top: 1px solid var(--line); }
+table.cmp td.best { font-weight: 600; }
+table.cmp .low { display: block; font-size: 13px; font-weight: 500; color: var(--accent); }
+
+footer { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
 footer a { color: inherit; }
 .stale { color: var(--fg); font-weight: 500; }
 </style>
 
-<div class="page">
+<main class="page">
   <header>
     <h1>Student Phone Plans</h1>
-    <p class="sub">US plans for international students. See what each one really costs in a year.</p>
+    <p class="sub">US phone plans for international students. Real cost = price + tax + fees, estimated for your state.</p>
   </header>
 
   <nav aria-label="Pages">
@@ -118,70 +167,62 @@ footer a { color: inherit; }
   </nav>
 
   <div class="view" id="view-find">
-  <section aria-label="Your details">
-    <div class="controls">
-      <div class="field">
-        <label for="state">State</label>
-        <select id="state"></select>
+    <section aria-label="Your details">
+      <div class="controls">
+        <div class="field">
+          <label for="state">State, for tax</label>
+          <select id="state"></select>
+        </div>
+        <div class="field">
+          <label for="budget">Monthly budget, all lines</label>
+          <div class="money"><span>$</span><input id="budget" type="number" inputmode="decimal" min="1" max="999" step="1" value="30"><small>/ mo</small></div>
+        </div>
+        <div class="field">
+          <label for="data">Data needed</label>
+          <select id="data">
+            <option value="0">Any amount</option>
+            <option value="2">2 GB (mostly Wi-Fi)</option>
+            <option value="5">5 GB (maps, chat)</option>
+            <option value="10">10 GB</option>
+            <option value="20">20 GB (daily video)</option>
+            <option value="50">50 GB</option>
+            <option value="unl">Unlimited</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="calls">International calls</label>
+          <select id="calls">
+            <option value="never">Never</option>
+            <option value="sometimes">Sometimes</option>
+            <option value="often">Often</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="lines">People on the plan</label>
+          <select id="lines">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
       </div>
-      <div class="field">
-        <label for="budget">Monthly budget</label>
-        <div class="money"><span>$</span><input id="budget" type="number" inputmode="decimal" min="1" max="999" step="1" value="30"><small>/ mo</small></div>
-      </div>
-      <div class="field">
-        <label for="data">Data needed</label>
-        <select id="data">
-          <option value="0">Any amount</option>
-          <option value="2">2 GB</option>
-          <option value="5">5 GB</option>
-          <option value="10">10 GB</option>
-          <option value="20">20 GB</option>
-          <option value="50">50 GB</option>
-          <option value="unl">Unlimited</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="calls">International calls</label>
-        <select id="calls">
-          <option value="never">Never</option>
-          <option value="sometimes">Sometimes</option>
-          <option value="often">Often</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="lines">People on the plan</label>
-        <select id="lines">
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option>
-        </select>
-      </div>
-    </div>
-    <p class="hint" id="hint" hidden>Calls over WhatsApp, WeChat or FaceTime use data, not plan minutes. This only matters for calls to regular phone numbers.</p>
-  </section>
+      <p class="hint" id="hint" hidden>Calls over WhatsApp, WeChat or FaceTime use data, not plan minutes. Included international calls cover a set list of countries, so check that yours is on the carrier's list.</p>
+    </section>
 
-  <section>
-    <h2>Recommended for you</h2>
-    <div class="picks" id="picks"></div>
-  </section>
+    <section>
+      <h2>Recommended for you</h2>
+      <div class="picks" id="picks"></div>
+      <p class="hint" id="status" role="status"></p>
+    </section>
 
-  <section>
-    <h2>All plans, cheapest first</h2>
-    <div class="scroll">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Plan</th>
-            <th scope="col">Data</th>
-            <th scope="col">Advertised<br>per year</th>
-            <th scope="col">Real cost<br>per year</th>
-            <th scope="col">Real cost<br>per month</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-  </section>
-
+    <section>
+      <h2>All plans, best fits first</h2>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sw a"></i>Advertised price</span>
+        <span><i class="sw b"></i>Extra: tax, fees, price rises</span>
+        <span><i class="sw mark"></i>Your budget for a year</span>
+      </div>
+      <ul class="plans" id="rows"></ul>
+    </section>
   </div>
 
   <div class="view" id="view-compare" hidden>
@@ -196,14 +237,34 @@ footer a { color: inherit; }
           <select id="plan-b"></select>
         </div>
       </div>
-      <p class="hint" id="cmp-basis"></p>
+      <p class="hint"><span id="cmp-basis"></span> <a href="#find">Change this</a></p>
     </section>
+
     <section>
-      <p class="verdict" id="verdict"></p>
+      <p class="verdict" id="verdict" role="status"></p>
+      <p class="hint" id="verdict-sub"></p>
     </section>
+
     <section>
+      <div class="legend">
+        <span><i class="sw a"></i><span id="legend-a"></span></span>
+        <span><i class="sw b"></i><span id="legend-b"></span></span>
+      </div>
+      <p class="chart-title">What you will have paid</p>
+      <p class="chart-sub">Running total over two years, tax and fees included. Touch or hover to read a month.</p>
+      <div class="chart" id="line-chart" tabindex="0" role="img"></div>
+    </section>
+
+    <section>
+      <p class="chart-title">Advertised price and real cost</p>
+      <p class="chart-sub">Per year.</p>
+      <div id="bar-chart"></div>
+    </section>
+
+    <section>
+      <h2>All the details</h2>
       <table class="cmp">
-        <thead><tr><th scope="col"><span hidden>Detail</span></th><th scope="col" id="head-a"></th><th scope="col" id="head-b"></th></tr></thead>
+        <thead><tr><th scope="col"><span class="sr">Detail</span></th><th scope="col"><i class="sw a"></i> <span id="head-a"></span></th><th scope="col"><i class="sw b"></i> <span id="head-b"></span></th></tr></thead>
         <tbody id="cmp-rows"></tbody>
       </table>
     </section>
@@ -211,11 +272,11 @@ footer a { color: inherit; }
 
   <footer>
     <span id="checked"></span>
-    <span>Real cost = the first year's price after any promo, plus taxes and carrier fees. Where a carrier doesn't include taxes, they're estimated at <span id="tax"></span> for state and local wireless taxes (<a href="https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/" target="_blank" rel="noopener">Tax Foundation, July 2026</a>). Your city or county can be a little higher or lower, and some carriers add a federal surcharge. Confirm the price at checkout.</span>
-    <span>Included international calls cover a set list of countries. Check that yours is on the carrier's list.</span>
-    <span>Prices from <a href="https://www.att.com/prepaid/plans/" target="_blank" rel="noopener">att.com</a>, <a href="https://www.usmobile.com/blog/cell-phone-plans-november-2026/" target="_blank" rel="noopener">US Mobile's November 2026 comparison</a> and <a href="https://www.whistleout.com/CellPhones/Guides/best-mint-mobile-plans" target="_blank" rel="noopener">WhistleOut</a>.</span>
+    <span>Real cost is an estimate: the price after any promo, plus carrier fees and state and local wireless taxes at <span id="tax"></span> (<a href="https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/" target="_blank" rel="noopener">Tax Foundation, July 2026</a>). Your city or county can be a little higher or lower, and some carriers add a federal surcharge. Confirm the price at checkout.</span>
+    <span>Prices from <a href="https://www.att.com/prepaid/plans/" target="_blank" rel="noopener">att.com</a>, <a href="https://www.verizon.com/prepaid/plans/phone-plans/" target="_blank" rel="noopener">verizon.com</a>, <a href="https://www.usmobile.com/blog/cell-phone-plans-november-2026/" target="_blank" rel="noopener">US Mobile's November 2026 comparison</a> and <a href="https://www.whistleout.com/CellPhones/Guides/best-mint-mobile-plans" target="_blank" rel="noopener">WhistleOut</a>. US Mobile sells plans too, so check each carrier's own site before you buy.</span>
   </footer>
-</div>
+</main>
+<div id="tip" hidden></div>
 
 <script>
 // Seed copy of plans.json, so the page works even if the live file can't be fetched.
@@ -226,7 +287,7 @@ const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const STATE_NAMES = { AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia", FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming" };
 const DATA_NEEDS = ["0", "2", "5", "10", "20", "50", "unl"];
 const CALLS = ["never", "sometimes", "often"];
-const state = { budget: 30, lines: 1, where: "", data: "0", calls: "never", a: "mint-unl", b: "visible" };
+const state = { budget: 30, lines: 1, where: "", data: "5", calls: "never", a: "", b: "" };
 try {
   const saved = JSON.parse(localStorage.getItem("spp") || "{}");
   if (saved.budget > 0) state.budget = saved.budget;
@@ -238,25 +299,35 @@ try {
   if (typeof saved.b === "string") state.b = saved.b;
 } catch (e) {}
 
-/* Cost of one plan for `lines` people at a tax rate. Pure. */
+/* Cost of one plan for `lines` people at a tax rate, month by month for two years. Pure. */
 function costs(p, lines, taxPct) {
   const known = p.lineTotals && p.lineTotals[lines];
-  const regular = known != null ? known : p.price + (p.addLine != null ? p.addLine : p.price) * (lines - 1);
+  const addLine = p.addLine != null ? p.addLine : p.price;
+  const regular = known != null ? known : p.price + addLine * (lines - 1);
   const promoMonths = p.promo ? Math.min(p.promo.months, 12) : 0;
-  const promoMonthly = p.promo ? p.promo.price * lines : regular;
-  const service1 = promoMonths * promoMonthly + (12 - promoMonths) * regular;
-  const service2 = 12 * regular;
-  const fees = (p.feePerLine || 0) * lines * 12;
+  const promoMonthly = p.promo ? p.promo.price + (p.promo.addLine != null ? p.promo.addLine : p.promo.price) * (lines - 1) : regular;
   const taxRate = p.taxesIncluded ? 0 : taxPct / 100;
-  // Advertised price for this many lines: the headline price, with extra lines at their own rate.
-  const extra = p.promo ? p.advertised : (p.addLine != null ? p.addLine : p.advertised);
-  const advertised = (known != null ? known : p.advertised + extra * (lines - 1)) * 12;
-  const year1 = service1 * (1 + taxRate) + fees;
-  const year2 = service2 * (1 + taxRate) + fees;
+  const feeMonthly = (p.feePerLine || 0) * lines;
+  const service = (m) => (m < promoMonths ? promoMonthly : regular);          // before tax, month 0-23
+  const charge = (m) => service(m) * (1 + taxRate) + feeMonthly;              // what the month costs
+  let year1 = 0, year2 = 0, service1 = 0;
+  for (let m = 0; m < 12; m++) { year1 += charge(m); service1 += service(m); }
+  for (let m = 12; m < 24; m++) year2 += charge(m);
+  // When each payment is actually made: every month, or in prepaid blocks.
+  const block = p.upfrontMonths || 0;
+  const cum = [0];
+  for (let m = 0; m < 24; m++) {
+    let pay = charge(m);
+    if (block) { pay = 0; if (m % block === 0) for (let k = m; k < Math.min(m + block, 24); k++) pay += charge(k); }
+    cum.push(cum[m] + pay);
+  }
+  // Advertised price for this many lines: the headline price, extra lines at their cheapest listed rate.
+  const advertised = (known != null ? known : p.advertised + Math.min(p.advertised, addLine) * (lines - 1)) * 12;
   return {
-    advertised, year1, year2, monthly: year1 / 12,
+    advertised, year1, year2, monthly: year1 / 12, monthly2: year2 / 12, cum,
+    rise: Math.max(0, service1 - advertised), taxfees: Math.max(0, year1 - service1),
     guessedLines: lines > 1 && known == null && p.lineTotals != null,
-    upfront: p.upfrontMonths ? year1 * Math.min(p.upfrontMonths, 12) / 12 : 0,
+    upfront: block ? cum[1] : 0,
   };
 }
 
@@ -264,8 +335,8 @@ function costs(p, lines, taxPct) {
 function misses(p, monthly, s) {
   const out = [];
   if (monthly > s.budget) out.push("Over budget");
-  if (s.data === "unl" ? !p.unlimited : p.fastGB < +s.data) out.push("Not enough data");
-  if (s.calls === "often" && !p.intlWide) out.push("Calls abroad cost extra");
+  if (s.data === "unl" ? !(p.unlimited && p.fastGB >= 50) : p.fastGB < +s.data) out.push("Not enough data");
+  if (s.calls === "often" && !p.intlWide) out.push("Few calls abroad");
   return out;
 }
 
@@ -278,106 +349,204 @@ function taxFor(where) {
 const full = (p) => p.plan === p.carrier ? p.carrier : `${p.carrier} ${p.plan}`;
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
-function render() {
+/* All plans with costs and fit, cheapest first; ties go to the plan with no upfront payment. */
+function ranked() {
   const taxPct = taxFor(state.where);
-  const all = DATA.plans.map((p) => {
+  return DATA.plans.map((p) => {
     const c = costs(p, state.lines, taxPct);
     return { p, c, miss: misses(p, c.monthly, state) };
-  }).sort((a, b) => a.c.year1 - b.c.year1);
+  }).sort((a, b) => Math.round(a.c.year1) - Math.round(b.c.year1) || a.c.upfront - b.c.upfront || full(a.p).localeCompare(full(b.p)));
+}
+
+function render() {
+  const taxPct = taxFor(state.where);
+  const all = ranked();
   const fits = all.filter((x) => !x.miss.length);
 
   const picks = [];
   const add = (why, x) => { if (x && !picks.some((k) => k.x.p.id === x.p.id)) picks.push({ why, x }); };
   add("Cheapest fit", fits[0]);
-  if (state.calls !== "never") add("Best for calls abroad", fits.find((x) => x.p.intlWide));
+  if (state.calls === "sometimes") add("Cheapest with calls abroad", fits.find((x) => x.p.intlWide));
   add("Most data in budget", [...fits].sort((a, b) => b.p.fastGB - a.p.fastGB || a.c.year1 - b.c.year1)[0]);
-  add("Mint Mobile option", fits.find((x) => x.p.carrier === "Mint Mobile"));
+  add("Cheapest paid monthly", fits.find((x) => !x.c.upfront));
 
+  const year2Line = (c) => Math.round(c.year2) !== Math.round(c.year1) ? `Year 2: about ${usd(c.monthly2)} / mo (${usd(c.year2)})` : "";
   if (picks.length) {
     $("picks").innerHTML = picks.slice(0, 3).map(({ why, x }) => `
       <div class="pick">
         <span class="why">${esc(why)}</span>
         <span class="name">${esc(full(x.p))}</span>
-        <span class="price num">${usd(x.c.monthly)}<small> / mo real cost</small></span>
-        <span class="meta num">${usd(x.c.year1)} a year · ${esc(x.p.data)}</span>
-        ${state.calls !== "never" && x.p.intl ? `<span class="meta">${esc(x.p.intl)}</span>` : ""}
+        <span class="price num">about ${usd(x.c.monthly)}<small> / mo</small></span>
+        <span class="meta num">${usd(x.c.year1)} for the first year · ${esc(x.p.data)}</span>
+        ${x.p.promo ? `<span class="meta">${esc(x.p.promo.label)}</span>` : ""}
+        ${year2Line(x.c) ? `<span class="meta num">${year2Line(x.c)}</span>` : ""}
         ${x.c.upfront ? `<span class="meta num">Pay ${usd(x.c.upfront)} up front</span>` : ""}
-        <a href="${esc(x.p.link)}" target="_blank" rel="noopener">See plan</a>
+        ${state.calls !== "never" && x.p.intl ? `<span class="meta">${esc(x.p.intl)}</span>` : ""}
+        <span class="links">
+          <a href="${esc(x.p.link)}" target="_blank" rel="noopener" aria-label="See ${esc(full(x.p))} on the carrier's site, opens in a new tab">See plan</a>
+          <a href="#compare" data-compare="${esc(x.p.id)}" aria-label="Compare ${esc(full(x.p))} with another plan">Compare</a>
+        </span>
       </div>`).join("");
   } else {
     // Closest = cheapest plan that meets the data and calling needs, ignoring budget.
     const near = all.find((x) => x.miss.length === 1 && x.miss[0] === "Over budget") || all[0];
     const overBy = near.c.monthly - state.budget;
-    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(full(near.p))} at ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget` : ""}.</div>`;
+    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(full(near.p))} at about ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget` : ""}.</div>`;
   }
+  $("status").textContent = `${fits.length} of ${all.length} plans fit what you picked.`;
 
-  $("rows").innerHTML = all.map(({ p, c, miss }) => {
-    const notes = [/network/i.test(p.network) ? p.network : p.network + " network"];
-    if (p.noCreditCheck) notes.push("no credit check");
-    if (p.intl) notes.push(p.intl);
-    if (p.promo) notes.push(p.promo.label);
-    if (c.upfront) notes.push(`pay ${usd(c.upfront)} up front`);
-    if (c.guessedLines) notes.push("multi-line discount may apply");
-    (p.notes || []).forEach((n) => notes.push(n));
-    const hidden = c.year1 - c.advertised;
+  const scale = Math.max(...all.map((x) => x.c.year1));
+  const listed = [...fits, ...all.filter((x) => x.miss.length)];   // good fits first, each group cheapest first
+  const mark = state.budget * 12 / scale;
+  $("rows").innerHTML = listed.map(({ p, c, miss }) => {
+    const extra = c.year1 - c.advertised;
+    const parts = [`${usd(c.advertised)} advertised`];
+    if (c.rise >= 1) parts.push(`+ ${usd(c.rise)} price rise`);
+    if (c.taxfees >= 1) parts.push(`+ ${usd(c.taxfees)} tax and fees`);
+    const more = [];
+    if (p.noCreditCheck) more.push("No credit check");
+    if (p.intl) more.push(p.intl);
+    if (p.promo) more.push(p.promo.label);
+    if (c.guessedLines) more.push("A multi-line discount may apply");
+    (p.notes || []).forEach((n) => more.push(n));
     return `
-      <tr class="${miss.length ? "over" : "fits"}">
-        <td><span class="name"><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(full(p))}</a></span>
-            <span class="tag">${esc(miss[0] || "Good fit")}</span>
-            <div class="meta">${notes.map(esc).join(" · ")}</div></td>
-        <td>${esc(p.data)}</td>
-        <td class="num">${usd(c.advertised)}</td>
-        <td class="num real">${usd(c.year1)}
-            ${hidden >= 1 ? `<span class="diff">+${usd(hidden)} taxes and fees</span>` : `<span class="diff">taxes included</span>`}
-            ${Math.round(c.year2) !== Math.round(c.year1) ? `<span class="then">${usd(c.year2)} in year 2</span>` : ""}</td>
-        <td class="num">${usd(c.monthly)}</td>
-      </tr>`;
+      <li class="plan ${miss.length ? "over" : "fits"}">
+        <div class="top">
+          <span><span class="name"><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(full(p))}</a></span> <span class="tag">${esc(miss[0] || "Good fit")}</span></span>
+          <span class="cost num">about ${usd(c.monthly)}<small> / mo</small></span>
+        </div>
+        <div class="meta">${esc(p.data)} · ${esc(/network/i.test(p.network) ? p.network : p.network + " network")}</div>
+        <div class="track" aria-hidden="true">
+          <span class="seg a" style="width:${(c.advertised / scale * 100).toFixed(2)}%" data-tip="${esc(full(p))}: ${usd(c.advertised)} advertised per year"></span>
+          ${extra >= 1 ? `<span class="seg b" style="width:${(extra / scale * 100).toFixed(2)}%" data-tip="${esc(full(p))}: ${usd(extra)} extra in the first year"></span>` : ""}
+          ${mark <= 1 ? `<span class="budget-mark" style="left:${(mark * 100).toFixed(2)}%"></span>` : ""}
+        </div>
+        <div class="meta num">${parts.join(" ")}${c.taxfees >= 1 ? "" : ", tax included"} = <strong>${usd(c.year1)}</strong> first year${Math.round(c.year2) !== Math.round(c.year1) ? `, then ${usd(c.year2)} in year 2` : ""}</div>
+        ${c.upfront ? `<div class="meta num">Pay ${usd(c.upfront)} up front</div>` : ""}
+        <details><summary>More about this plan</summary>
+          <p>${more.map(esc).join(". ")}.</p>
+          <p><a href="#compare" data-compare="${esc(p.id)}">Compare this plan with another</a></p>
+        </details>
+      </li>`;
   }).join("");
 
-  renderCompare();
   $("hint").hidden = state.calls === "never";
   const checked = new Date(DATA.checked + "T12:00:00");
   const days = Math.floor((Date.now() - checked.getTime()) / 86400000);
   $("checked").innerHTML = `Prices checked ${checked.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
     + (days > 14 ? ` <span class="stale">That was ${days} days ago, so some prices may have changed.</span>` : "");
   $("tax").textContent = taxPct.toFixed(1) + "%, the " + (STATE_NAMES[state.where] ? STATE_NAMES[state.where] + " average" : "US average");
+  renderCompare(all);
 }
 
-function renderCompare() {
+/* ---------- Compare view ---------- */
+
+function niceTop(max) {
+  const step = [25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000].find((s) => max / s <= 4) || 20000;
+  return { step, top: Math.max(step, Math.ceil(max / step) * step) };
+}
+
+let lineState = null;   // geometry of the drawn line chart, for the crosshair
+function drawLine(A, B, ca, cb) {
+  const el = $("line-chart");
+  const W = Math.max(280, el.clientWidth), H = 220, m = { l: 48, r: 14, t: 10, b: 26 };
+  const { step, top } = niceTop(Math.max(ca.cum[24], cb.cum[24]));
+  const x = (v) => m.l + v / 24 * (W - m.l - m.r);
+  const y = (v) => H - m.b - v / top * (H - m.t - m.b);
+  const path = (cum) => { let d = `M${x(0).toFixed(1)},${y(0).toFixed(1)}`; for (let i = 1; i <= 24; i++) d += `V${y(cum[i]).toFixed(1)}H${x(i).toFixed(1)}`; return d; };
+  let g = "";
+  for (let v = 0; v <= top; v += step) g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tick" x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${usd(v)}</text>`;
+  [[0, "Start", "start"], [6, "6 mo", "middle"], [12, "1 yr", "middle"], [18, "18 mo", "middle"], [24, "2 yr", "end"]]
+    .forEach(([v, label, anchor]) => { g += `<text class="tick" x="${x(v)}" y="${H - 6}" text-anchor="${anchor}">${label}</text>`; });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">${g}
+    <path class="ln b" d="${path(cb.cum)}"/><path class="ln a" d="${path(ca.cum)}"/>
+    <circle class="dot b" r="5" cx="${x(24)}" cy="${y(cb.cum[24])}"/><circle class="dot a" r="5" cx="${x(24)}" cy="${y(ca.cum[24])}"/>
+    <g id="cross" hidden><line class="cross" y1="${m.t}" y2="${H - m.b}"/><circle class="dot b" r="5"/><circle class="dot a" r="5"/></g></svg>`;
+  el.setAttribute("aria-label", `Running total over two years. ${full(A)} reaches ${usd(ca.cum[24])}. ${full(B)} reaches ${usd(cb.cum[24])}. Use the left and right arrow keys to read each month.`);
+  lineState = { A, B, ca, cb, x, y, m, W, month: 0 };
+}
+
+function showMonth(month, clientX, clientY) {
+  const s = lineState; if (!s) return;
+  month = Math.min(24, Math.max(1, month)); s.month = month;
+  const cross = $("line-chart").querySelector("#cross");
+  const cx = s.x(month - 0.5);
+  cross.removeAttribute("hidden");
+  const [line, dotB, dotA] = cross.children;
+  line.setAttribute("x1", cx); line.setAttribute("x2", cx);
+  dotA.setAttribute("cx", cx); dotA.setAttribute("cy", s.y(s.ca.cum[month]));
+  dotB.setAttribute("cx", cx); dotB.setAttribute("cy", s.y(s.cb.cum[month]));
+  const tip = $("tip"); tip.textContent = "";
+  const head = document.createElement("div"); head.textContent = `After month ${month}`; tip.appendChild(head);
+  [["a", s.A, s.ca], ["b", s.B, s.cb]].forEach(([k, p, c]) => {
+    const row = document.createElement("div");
+    const key = document.createElement("span"); key.className = "key " + k;
+    const val = document.createElement("b"); val.textContent = usd(c.cum[month]);
+    row.append(key, val, document.createTextNode(" " + full(p)));
+    tip.appendChild(row);
+  });
+  placeTip(clientX, clientY);
+}
+
+function placeTip(clientX, clientY) {
+  const tip = $("tip"); tip.hidden = false;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(clientX + 12, innerWidth - w - 8)) + "px";
+  tip.style.top = Math.max(8, clientY - h - 12) + "px";
+}
+function hideTip() { $("tip").hidden = true; const c = $("line-chart").querySelector("#cross"); if (c) c.setAttribute("hidden", ""); }
+
+function drawBars(A, B, ca, cb) {
+  const groups = [["Advertised", ca.advertised, cb.advertised], ["Real cost, year 1", ca.year1, cb.year1], ["Real cost, year 2", ca.year2, cb.year2]];
+  const max = Math.max(...groups.flatMap((g) => [g[1], g[2]]));
+  const bar = (k, p, label, v) => `<div class="barrow" data-tip="${esc(full(p))}: ${usd(v)}, ${esc(label.toLowerCase())}">
+      <span class="bar ${k}" style="width:calc((100% - 72px) * ${(v / max).toFixed(4)})"></span><span class="val">${usd(v)}</span></div>`;
+  $("bar-chart").innerHTML = groups.map(([label, va, vb]) =>
+    `<div class="grp"><div class="grp-label">${esc(label)}</div>${bar("a", A, label, va)}${bar("b", B, label, vb)}</div>`).join("");
+}
+
+function renderCompare(all) {
+  all = all || ranked();
   const plans = DATA.plans;
   const byId = (id) => plans.find((p) => p.id === id);
-  if (!byId(state.a)) state.a = plans[0].id;
-  if (!byId(state.b)) state.b = (plans.find((p) => p.id !== state.a) || plans[0]).id;
-  const options = plans.map((p) => `<option value="${esc(p.id)}">${esc(full(p))}</option>`).join("");
+  // Default pair: the two cheapest plans for what the student picked.
+  const order = [...all.filter((x) => !x.miss.length), ...all.filter((x) => x.miss.length)].map((x) => x.p.id);
+  if (!byId(state.a)) state.a = order.find((id) => id !== state.b) || plans[0].id;
+  if (!byId(state.b)) state.b = order.find((id) => id !== state.a) || plans[0].id;
+  const sorted = [...plans].sort((p, q) => full(p).localeCompare(full(q)));
+  const options = sorted.map((p) => `<option value="${esc(p.id)}">${esc(full(p))}</option>`).join("");
   for (const [id, key] of [["plan-a", "a"], ["plan-b", "b"]]) {
-    if ($(id).options.length !== plans.length) $(id).innerHTML = options;
+    if ($(id).dataset.count !== String(plans.length)) { $(id).innerHTML = options; $(id).dataset.count = plans.length; }
     $(id).value = state[key];
   }
 
   const taxPct = taxFor(state.where);
   const A = byId(state.a), B = byId(state.b);
   const ca = costs(A, state.lines, taxPct), cb = costs(B, state.lines, taxPct);
-  const name = full;
-  $("head-a").textContent = name(A);
-  $("head-b").textContent = name(B);
+  for (const [id, p] of [["head-a", A], ["head-b", B], ["legend-a", A], ["legend-b", B]]) $(id).textContent = full(p);
 
   const place = STATE_NAMES[state.where] || "the average US state";
-  $("cmp-basis").textContent = `Costs are for ${state.lines} ${state.lines === 1 ? "person" : "people"} in ${place}. Change that on the Find a plan page.`;
+  $("cmp-basis").textContent = `Costs are for ${state.lines} ${state.lines === 1 ? "person" : "people"} in ${place}.`;
 
-  const gap = Math.round(ca.year1) - Math.round(cb.year1);
+  const ta = ca.cum[24], tb = cb.cum[24];
+  const gap = Math.round(ta) - Math.round(tb);
   $("verdict").textContent = state.a === state.b ? "Pick two different plans to compare."
-    : gap === 0 ? "Both plans cost the same in the first year."
-    : `${name(gap < 0 ? A : B)} costs ${usd(Math.abs(gap))} less in the first year.`;
+    : gap === 0 ? "Both plans cost the same over two years."
+    : `Over two years, ${full(gap < 0 ? A : B)} costs ${usd(Math.abs(gap))} less.`;
+  $("verdict-sub").textContent = `First year: about ${usd(ca.year1)} for ${full(A)} and ${usd(cb.year1)} for ${full(B)}.`;
 
-  // Each row: label, value for A, value for B, and which side is better (-1 A, 1 B, 0 neither).
+  if (!$("view-compare").hidden) { drawLine(A, B, ca, cb); drawBars(A, B, ca, cb); }
+
+  // Each row: label, value for A, value for B, and which side is lower (-1 A, 1 B, 0 neither).
   const lower = (x, y) => Math.round(x) === Math.round(y) ? 0 : x < y ? -1 : 1;
   const good = (p) => [p.promo ? p.promo.label : "", ...(p.notes || [])].filter(Boolean).join(". ") || "Nothing extra";
   const rows = [
-    ["Real cost per year", usd(ca.year1), usd(cb.year1), lower(ca.year1, cb.year1), "key"],
-    ["Real cost per month", usd(ca.monthly), usd(cb.monthly), lower(ca.monthly, cb.monthly)],
+    ["Two years together", usd(ta), usd(tb), lower(ta, tb)],
+    ["Real cost, year 1", usd(ca.year1), usd(cb.year1), lower(ca.year1, cb.year1)],
+    ["Real cost, year 2", usd(ca.year2), usd(cb.year2), lower(ca.year2, cb.year2)],
+    ["Per month, year 1", "about " + usd(ca.monthly), "about " + usd(cb.monthly), 0],
     ["Advertised per year", usd(ca.advertised), usd(cb.advertised), 0],
-    ["Taxes and fees per year", A.taxesIncluded ? "Included" : usd(ca.year1 - ca.advertised), B.taxesIncluded ? "Included" : usd(cb.year1 - cb.advertised), 0],
-    ["Cost in year 2", usd(ca.year2), usd(cb.year2), lower(ca.year2, cb.year2)],
+    ["Tax and fees, year 1", A.taxesIncluded && ca.taxfees < 1 ? "Included" : usd(ca.taxfees), B.taxesIncluded && cb.taxfees < 1 ? "Included" : usd(cb.taxfees), 0],
     ["Pay up front", ca.upfront ? usd(ca.upfront) : "Nothing, pay monthly", cb.upfront ? usd(cb.upfront) : "Nothing, pay monthly", 0],
     ["Data", A.data, B.data, 0],
     ["Network", A.network, B.network, 0],
@@ -385,19 +554,20 @@ function renderCompare() {
     ["Credit check", A.noCreditCheck ? "None" : "May apply", B.noCreditCheck ? "None" : "May apply", 0],
     ["Good to know", good(A), good(B), 0],
   ];
-  $("cmp-rows").innerHTML = rows.map(([label, a, b, win, cls]) => `
-    <tr class="${cls || ""}"><th scope="row">${esc(label)}</th>
-      <td class="num${win === -1 ? " best" : ""}">${esc(a)}</td>
-      <td class="num${win === 1 ? " best" : ""}">${esc(b)}</td></tr>`).join("");
+  const cell = (v, win) => `<td class="num${win ? " best" : ""}">${esc(v)}${win ? '<span class="low">lower</span>' : ""}</td>`;
+  $("cmp-rows").innerHTML = rows.map(([label, a, b, win]) =>
+    `<tr><th scope="row">${esc(label)}</th>${cell(a, win === -1)}${cell(b, win === 1)}</tr>`).join("");
 }
 
 function route() {
   const compare = location.hash === "#compare";
   $("view-find").hidden = compare;
   $("view-compare").hidden = !compare;
-  $("nav-find").toggleAttribute("aria-current", !compare);
-  $("nav-compare").toggleAttribute("aria-current", compare);
-  if (!compare) $("nav-find").setAttribute("aria-current", "page"); else $("nav-compare").setAttribute("aria-current", "page");
+  for (const [id, on] of [["nav-find", !compare], ["nav-compare", compare]]) {
+    if (on) $(id).setAttribute("aria-current", "page"); else $(id).removeAttribute("aria-current");
+  }
+  hideTip();
+  if (compare) renderCompare();
 }
 
 function save() { try { localStorage.setItem("spp", JSON.stringify(state)); } catch (e) {} }
@@ -417,11 +587,43 @@ bind("calls", "calls", String);
 bind("lines", "lines", Number);
 bind("plan-a", "a", String);
 bind("plan-b", "b", String);
-window.addEventListener("hashchange", route);
 $("budget").addEventListener("input", (e) => {
   const v = parseFloat(e.target.value);
   if (v > 0) { state.budget = v; save(); render(); }
 });
+
+// "Compare" links: this plan becomes plan A, the old plan A becomes plan B.
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("[data-compare]"); if (!link) return;
+  const id = link.dataset.compare;
+  if (id !== state.a) { state.b = state.a; state.a = id; save(); }
+  if (location.hash === "#compare") renderCompare();
+});
+
+// Hover and touch read-outs.
+const chartEl = $("line-chart");
+const monthAt = (e) => { const s = lineState, r = chartEl.getBoundingClientRect(); return Math.ceil(((e.clientX - r.left) - s.m.l) / (s.W - s.m.l - s.m.r) * 24); };
+chartEl.addEventListener("pointermove", (e) => { if (lineState) showMonth(monthAt(e), e.clientX, e.clientY); });
+chartEl.addEventListener("pointerdown", (e) => { if (lineState) showMonth(monthAt(e), e.clientX, e.clientY); });
+chartEl.addEventListener("pointerleave", hideTip);
+chartEl.addEventListener("blur", hideTip);
+chartEl.addEventListener("keydown", (e) => {
+  if (!lineState || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+  e.preventDefault();
+  const r = chartEl.getBoundingClientRect();
+  const month = Math.min(24, Math.max(1, (lineState.month || 0) + (e.key === "ArrowRight" ? 1 : -1)));
+  showMonth(month, r.left + lineState.x(month - 0.5), r.top + 40);
+});
+document.addEventListener("pointermove", (e) => {
+  const t = e.target.closest && e.target.closest("[data-tip]");
+  if (t) { $("tip").textContent = t.dataset.tip; placeTip(e.clientX, e.clientY); }
+  else if (!e.target.closest || !e.target.closest("#line-chart")) $("tip").hidden = true;
+});
+if (window.ResizeObserver) {
+  let lastW = 0;
+  new ResizeObserver(() => { const w = chartEl.clientWidth; if (w && w !== lastW) { lastW = w; renderCompare(); } }).observe(chartEl);
+}
+window.addEventListener("hashchange", route);
 
 // Pick up newer prices whenever plans.json is republished.
 async function refresh() {
