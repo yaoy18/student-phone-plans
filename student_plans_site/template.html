@@ -525,6 +525,27 @@ function timeTicks(months) {
   return out;
 }
 
+/* A smooth curve through the points that never dips or overshoots (monotone cubic). Points are [x, y] in pixels. */
+function smoothPath(pts) {
+  const n = pts.length;
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  if (n < 3) { for (let i = 1; i < n; i++) d += `L${pts[i][0].toFixed(1)},${pts[i][1].toFixed(1)}`; return d; }
+  const dx = [], slope = [], t = new Array(n);
+  for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; slope[i] = (pts[i + 1][1] - pts[i][1]) / dx[i]; }
+  t[0] = slope[0]; t[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i++) t[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = t[i] / slope[i], b = t[i + 1] / slope[i], h = a * a + b * b;
+    if (h > 9) { const k = 3 / Math.sqrt(h); t[i] = k * a * slope[i]; t[i + 1] = k * b * slope[i]; }
+  }
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], third = dx[i] / 3;
+    d += `C${(x0 + third).toFixed(1)},${(y0 + t[i] * third).toFixed(1)} ${(x1 - third).toFixed(1)},${(y1 - t[i + 1] * third).toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  return d;
+}
+
 let lineState = null;   // what the line chart is showing, for the read-out
 function drawLine(sel, months) {
   const el = $("line-chart");
@@ -532,7 +553,14 @@ function drawLine(sel, months) {
   const { step, top } = niceTop(Math.max(...sel.map((s) => s.c.cum[months])));
   const x = (v) => m.l + v / months * (W - m.l - m.r);
   const y = (v) => H - m.b - v / top * (H - m.t - m.b);
-  const path = (cum) => { let d = `M${x(0).toFixed(1)},${y(0).toFixed(1)}`; for (let i = 1; i <= months; i++) d += `V${y(cum[i]).toFixed(1)}H${x(i).toFixed(1)}`; return d; };
+  // One point per month up to three years, then fewer, so long spans stay smooth and light.
+  const every = Math.max(1, Math.ceil(months / 36));
+  const path = (cum) => {
+    const pts = [];
+    for (let i = 0; i < months; i += every) pts.push([x(i), y(cum[i])]);
+    pts.push([x(months), y(cum[months])]);
+    return smoothPath(pts);
+  };
   let g = "";
   for (let v = 0; v <= top; v += step) g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tick" x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${axisUsd(v)}</text>`;
   timeTicks(months).forEach(([v, label]) => {
@@ -560,7 +588,7 @@ function showMonth(month) {
   const s = lineState; if (!s) return;
   month = Math.min(s.months, Math.max(1, Math.round(month))); s.month = month;
   const cross = $("line-chart").querySelector("#cross");
-  const cx = s.x(month - 0.5);
+  const cx = s.x(month);
   cross.querySelector("line").setAttribute("x1", cx); cross.querySelector("line").setAttribute("x2", cx);
   cross.querySelectorAll("circle").forEach((dot) => {
     const it = s.sel.find((z) => z.k === dot.dataset.k);
@@ -735,7 +763,7 @@ document.addEventListener("click", (e) => {
 
 // Line chart read-out: touch, mouse or arrow keys pick the month; it stays until you pick another.
 const chartEl = $("line-chart");
-const monthAt = (e) => { const s = lineState, r = chartEl.getBoundingClientRect(); return Math.ceil(((e.clientX - r.left) - s.m.l) / (s.W - s.m.l - s.m.r) * s.months); };
+const monthAt = (e) => { const s = lineState, r = chartEl.getBoundingClientRect(); return Math.round(((e.clientX - r.left) - s.m.l) / (s.W - s.m.l - s.m.r) * s.months); };
 chartEl.addEventListener("pointermove", (e) => { if (lineState) showMonth(monthAt(e)); });
 chartEl.addEventListener("pointerdown", (e) => { if (lineState) showMonth(monthAt(e)); });
 chartEl.addEventListener("keydown", (e) => {

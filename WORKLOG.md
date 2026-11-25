@@ -42,6 +42,11 @@ Newest entries first. Each price update adds an entry here.
   due at the start; taxes use each state's average state and local wireless rate
   (Tax Foundation, July 2026).
 - Added `student_plans_site/check.mjs`, which checks the data and the cost math.
+- Compare chart draws smooth curves instead of stepped lines. The read-out under
+  the chart still gives the exact total for the month you pick.
+- A weekly price check is scheduled in the Claude desktop app (Mondays, 9 AM). It
+  re-reads each carrier page in Chrome, updates `plans.json`, republishes and
+  pushes. It had not yet run when this entry was written.
 
 ### Review panel
 Three simulated reviewers (AI personas, not real users) scored the site twice.
