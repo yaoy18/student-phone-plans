@@ -1,0 +1,7 @@
+.claude/
+__pycache__/
+.pytest_cache/
+.agent_ids.json
+comparison.md
+preview.html
+.DS_Store
