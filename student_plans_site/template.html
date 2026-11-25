@@ -124,6 +124,10 @@ details.more > summary { font-weight: 500; cursor: pointer; padding: 12px 0; bor
 .slot { display: flex; align-items: center; gap: 10px; }
 .slot select { flex: 1; }
 .slot .rm { width: 48px; padding: 0; font-size: 20px; line-height: 1; flex: none; }
+.field.span { margin-top: 16px; }
+.span-row { display: flex; align-items: center; gap: 16px; }
+.span-row .money { width: 120px; flex: none; }
+input[type="range"] { flex: 1; min-width: 0; height: 48px; accent-color: var(--accent); }
 .verdict { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
 .chart-title { font-weight: 600; margin: 0 0 2px; }
 .chart-sub { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
@@ -238,6 +242,10 @@ footer a { color: inherit; }
         <span><i class="sw mark"></i>Your budget for a year</span>
       </div>
       <ul class="plans" id="rows"></ul>
+      <details class="more" id="morefits-box">
+        <summary id="morefits-sum"></summary>
+        <ul class="plans" id="morefits"></ul>
+      </details>
       <details class="more" id="others-box">
         <summary id="others-sum"></summary>
         <ul class="plans" id="others"></ul>
@@ -248,6 +256,13 @@ footer a { color: inherit; }
   <div class="view" id="view-compare" tabindex="-1" hidden>
     <section aria-label="Plans to compare">
       <div class="slots" id="slots"></div>
+      <div class="field span">
+        <label for="years">Time span</label>
+        <div class="span-row">
+          <div class="money"><input id="years" type="number" inputmode="numeric" min="1" max="100" step="1" value="2"><small>years</small></div>
+          <input id="years-range" type="range" min="1" max="100" step="1" value="2" aria-label="Time span in years">
+        </div>
+      </div>
       <p class="hint basis"><span id="cmp-basis"></span> <a href="#find">Change this</a></p>
     </section>
 
@@ -259,7 +274,7 @@ footer a { color: inherit; }
     <section>
       <div class="legend" id="cmp-legend"></div>
       <p class="chart-title">What you will have paid</p>
-      <p class="chart-sub">Running total over two years, with tax and fees. Year 2 assumes you keep the plan at its regular price. Touch the chart to read a month.</p>
+      <p class="chart-sub" id="line-sub"></p>
       <div class="chart" id="line-chart" tabindex="0" role="img"></div>
       <div class="readout" id="readout" aria-live="polite"></div>
     </section>
@@ -280,6 +295,7 @@ footer a { color: inherit; }
     <span id="checked"></span>
     <span>Real cost is an estimate for the first year: the plan price, any price change during the year, one-time fees, carrier fees, and state and local wireless taxes at <span id="tax"></span> (<a href="https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/" target="_blank" rel="noopener">Tax Foundation, July 2026</a>). Your city or county can be a little higher or lower, and some carriers add a federal surcharge. Confirm the price at checkout.</span>
     <span id="sources"></span>
+    <span>No carrier's page states its SSN or credit-check rule. Plans paid in advance are marked "No SSN needed"; ask the carrier if you are unsure.</span>
   </footer>
 </main>
 <div id="tip" hidden></div>
@@ -295,7 +311,7 @@ const DATA_NEEDS = { "0": "", "2": "2 GB is enough if you are mostly on Wi-Fi.",
 const CALLS = ["never", "sometimes", "often"];
 const SLOTS = ["a", "b", "c", "d"];
 const MAX_CMP = 4;
-const state = { budget: 30, lines: 1, where: "", data: "5", calls: "never", ssn: "no", cmp: [] };
+const state = { budget: 30, lines: 1, where: "", data: "5", calls: "never", ssn: "no", cmp: [], years: 2 };
 try {
   const saved = JSON.parse(localStorage.getItem("spp") || "{}");
   if (saved.budget > 0) state.budget = saved.budget;
@@ -304,20 +320,24 @@ try {
   if (saved.data in DATA_NEEDS) state.data = saved.data;
   if (CALLS.includes(saved.calls)) state.calls = saved.calls;
   if (saved.ssn === "yes" || saved.ssn === "no") state.ssn = saved.ssn;
+  if (saved.years >= 1 && saved.years <= 100) state.years = Math.round(saved.years);
   if (Array.isArray(saved.cmp)) state.cmp = saved.cmp.filter((x) => typeof x === "string").slice(0, MAX_CMP);
 } catch (e) {}
 
-/* Cost of one plan for `lines` people at a tax rate, month by month for two years. Pure. */
-function costs(p, lines, taxPct) {
+/* Cost of one plan for `lines` people at a tax rate, month by month for `months` (at least two years). Pure. */
+function costs(p, lines, taxPct, months) {
+  months = Math.max(24, months || 24);
   const known = p.lineTotals && p.lineTotals[lines];
   const addLine = p.addLine != null ? p.addLine : p.price;
   const regular = known != null ? known : p.price + addLine * (lines - 1);
-  const promoMonths = p.promo ? Math.min(p.promo.months, 12) : 0;
-  const promoMonthly = p.promo ? p.promo.price + (p.promo.addLine != null ? p.promo.addLine : p.promo.price) * (lines - 1) : regular;
+  const promoMonths = p.promo ? p.promo.months : 0;
+  const promoKnown = p.promo && p.promo.lineTotals && p.promo.lineTotals[lines];
+  const promoMonthly = !p.promo ? regular : promoKnown != null ? promoKnown
+    : p.promo.price + (p.promo.addLine != null ? p.promo.addLine : p.promo.price) * (lines - 1);
   const taxRate = p.taxesIncluded ? 0 : taxPct / 100;
   const feeMonthly = (p.feePerLine || 0) * lines;
   const oneTime = (p.oneTimeFee || 0) * lines;                               // activation, SIM: paid once at the start
-  const service = (m) => (m < promoMonths ? promoMonthly : regular);          // before tax, month 0-23
+  const service = (m) => (m < promoMonths ? promoMonthly : regular);          // before tax, month 0 onward
   const charge = (m) => service(m) * (1 + taxRate) + feeMonthly;              // what the month costs
   let year1 = oneTime, year2 = 0, service1 = 0;
   for (let m = 0; m < 12; m++) { year1 += charge(m); service1 += service(m); }
@@ -325,14 +345,14 @@ function costs(p, lines, taxPct) {
   // When each payment is actually made: every month, or in prepaid blocks.
   const block = p.upfrontMonths || 0;
   const cum = [0];
-  for (let m = 0; m < 24; m++) {
+  for (let m = 0; m < months; m++) {
     let pay = charge(m);
-    if (block) { pay = 0; if (m % block === 0) for (let k = m; k < Math.min(m + block, 24); k++) pay += charge(k); }
+    if (block) { pay = 0; if (m % block === 0) for (let k = m; k < m + block; k++) pay += charge(k); }
     if (m === 0) pay += oneTime;
     cum.push(cum[m] + pay);
   }
-  // Advertised price for this many lines: the headline price, extra lines at their cheapest listed rate.
-  const advertised = (known != null ? known : p.advertised + Math.min(p.advertised, addLine) * (lines - 1)) * 12;
+  // Advertised price for this many lines: the lower of the regular and the promo monthly price.
+  const advertised = Math.min(regular, promoMonthly) * 12;
   return {
     advertised, year1, year2, monthly: year1 / 12, monthly2: year2 / 12, cum, oneTime,
     rise: Math.max(0, service1 - advertised), taxfees: Math.max(0, year1 - oneTime - service1),
@@ -346,10 +366,12 @@ function costs(p, lines, taxPct) {
 function misses(p, c, s) {
   const out = [];
   if (s.ssn === "no" && !p.noCreditCheck) out.push("Needs SSN or deposit");
-  if (c.guessedLines) out.push(`Price not checked for ${s.lines} people`);
+  if (p.maxLines && s.lines > p.maxLines) out.push(p.maxLines === 1 ? "One person only" : `Up to ${p.maxLines} people`);
+  else if (c.guessedLines) out.push(`Price not checked for ${s.lines} people`);
   if (c.monthly > s.budget) out.push("Over budget");
   else if (c.monthly2 > s.budget) out.push("Over budget in year 2");
-  if (s.data === "unl" ? !(p.unlimited && p.fastGB >= 50) : p.fastGB < +s.data) out.push("Not enough data");
+  const gb = p.sharedData ? p.fastGB / s.lines : p.fastGB;   // shared allowances are split across lines
+  if (s.data === "unl" ? !(p.unlimited && gb >= 50) : gb < +s.data) out.push("Not enough data");
   if (s.calls === "often" && !p.intlWide) out.push("Few calls abroad");
   return out;
 }
@@ -453,7 +475,12 @@ function render() {
   $("status").textContent = `${fits.length} of ${all.length} plans fit what you picked. Prices checked ${checkedText}.`;
 
   const fitScale = Math.max(state.budget * 12, ...fits.map((x) => x.c.year1));
-  $("rows").innerHTML = fits.length ? fits.map((x) => planRow(x, fitScale)).join("") : `<li class="plan meta">No plan fits yet. Try a higher budget or less data.</li>`;
+  const SHOWN = 6;   // keep the page short on a phone; the rest open with one tap
+  $("rows").innerHTML = fits.length ? fits.slice(0, SHOWN).map((x) => planRow(x, fitScale)).join("") : `<li class="plan meta">No plan fits yet. Try a higher budget or less data.</li>`;
+  const moreFits = fits.slice(SHOWN);
+  $("morefits").innerHTML = moreFits.map((x) => planRow(x, fitScale)).join("");
+  $("morefits-sum").textContent = `${moreFits.length} more ${moreFits.length === 1 ? "plan that fits" : "plans that fit"}`;
+  $("morefits-box").hidden = !moreFits.length;
   const otherScale = Math.max(1, ...others.map((x) => x.c.year1));
   $("others").innerHTML = others.map((x) => planRow(x, otherScale)).join("");
   $("others-sum").textContent = `${others.length} more ${others.length === 1 ? "plan" : "plans"} that don't fit, and why`;
@@ -468,49 +495,70 @@ function render() {
   $("checked").innerHTML = `Prices checked ${checkedText}.` + (days > 14 ? ` <span class="stale">That was ${days} days ago, so some prices may have changed.</span>` : "");
   $("tax").textContent = taxPct.toFixed(1) + "%, the " + (STATE_NAMES[state.where] ? STATE_NAMES[state.where] + " average" : "US average");
   const hosts = [...new Set(DATA.plans.map((p) => { try { return new URL(p.source).hostname.replace(/^www\./, ""); } catch (e) { return ""; } }).filter(Boolean))].sort();
-  $("sources").textContent = "Prices read from: " + hosts.join(", ") + ".";
+  $("sources").textContent = "Prices read from each carrier's own website: " + hosts.join(", ") + ".";
   renderCompare(all);
 }
 
 /* ---------- Compare view: two to four plans ---------- */
 
 function niceTop(max) {
-  const step = [25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000].find((s) => max / s <= 4) || 20000;
+  const steps = [25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 100000, 200000, 250000, 500000];
+  const step = steps.find((s) => max / s <= 4) || 1000000;
   return { step, top: Math.max(step, Math.ceil(max / step) * step) };
+}
+const axisUsd = (v) => v >= 10000 ? "$" + (v / 1000).toLocaleString("en-US") + "K" : usd(v);
+const spanText = (years) => years === 1 ? "one year" : `${years} years`;
+function whenText(month) {
+  if (month % 12 === 0) return `After ${spanText(month / 12)}`;
+  return month < 12 ? `After month ${month}` : `After ${Math.floor(month / 12)} yr ${month % 12} mo`;
+}
+/* Tick positions (in months) and labels for the time axis. */
+function timeTicks(months) {
+  const years = months / 12;
+  if (years <= 2) {
+    const stepM = years === 1 ? 3 : 6, out = [];
+    for (let v = 0; v <= months; v += stepM) out.push([v, v === 0 ? "Start" : v % 12 === 0 ? `${v / 12} yr` : `${v} mo`]);
+    return out;
+  }
+  const stepY = [1, 2, 5, 10, 20, 25].find((s) => years / s <= 5) || 25, out = [[0, "Start"]];
+  for (let y = stepY; y <= years; y += stepY) out.push([y * 12, `${y} yr`]);
+  return out;
 }
 
 let lineState = null;   // what the line chart is showing, for the read-out
-function drawLine(sel) {
+function drawLine(sel, months) {
   const el = $("line-chart");
   const W = Math.max(280, el.clientWidth), H = 230, m = { l: 48, r: 26, t: 12, b: 26 };
-  const { step, top } = niceTop(Math.max(...sel.map((s) => s.c.cum[24])));
-  const x = (v) => m.l + v / 24 * (W - m.l - m.r);
+  const { step, top } = niceTop(Math.max(...sel.map((s) => s.c.cum[months])));
+  const x = (v) => m.l + v / months * (W - m.l - m.r);
   const y = (v) => H - m.b - v / top * (H - m.t - m.b);
-  const path = (cum) => { let d = `M${x(0).toFixed(1)},${y(0).toFixed(1)}`; for (let i = 1; i <= 24; i++) d += `V${y(cum[i]).toFixed(1)}H${x(i).toFixed(1)}`; return d; };
+  const path = (cum) => { let d = `M${x(0).toFixed(1)},${y(0).toFixed(1)}`; for (let i = 1; i <= months; i++) d += `V${y(cum[i]).toFixed(1)}H${x(i).toFixed(1)}`; return d; };
   let g = "";
-  for (let v = 0; v <= top; v += step) g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tick" x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${usd(v)}</text>`;
-  [[0, "Start", "start"], [6, "6 mo", "middle"], [12, "1 yr", "middle"], [18, "18 mo", "middle"], [24, "2 yr", "end"]]
-    .forEach(([v, label, anchor]) => { g += `<text class="tick" x="${x(v)}" y="${H - 6}" text-anchor="${anchor}">${label}</text>`; });
+  for (let v = 0; v <= top; v += step) g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tick" x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${axisUsd(v)}</text>`;
+  timeTicks(months).forEach(([v, label]) => {
+    const anchor = v === 0 ? "start" : v === months ? "end" : "middle";
+    g += `<text class="tick" x="${x(v)}" y="${H - 6}" text-anchor="${anchor}">${label}</text>`;
+  });
   // Letter labels at the line ends, nudged apart so they never overlap.
-  const ends = sel.map((s) => ({ s, y: y(s.c.cum[24]) })).sort((p, q) => p.y - q.y);
+  const ends = sel.map((s) => ({ s, y: y(s.c.cum[months]) })).sort((p, q) => p.y - q.y);
   for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
   const over = ends.length ? ends[ends.length - 1].y - (H - m.b) : 0;
   if (over > 0) ends.forEach((e) => { e.y -= over; });
   const rev = [...sel].reverse();
   el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">${g}
     ${rev.map((s) => `<path class="ln st-${s.k}" d="${path(s.c.cum)}"/>`).join("")}
-    ${rev.map((s) => `<circle class="dot fl-${s.k}" r="5" cx="${x(24)}" cy="${y(s.c.cum[24])}"/>`).join("")}
-    ${ends.map((e) => `<text class="endl" x="${x(24) + 10}" y="${e.y + 4}">${e.s.letter}</text>`).join("")}
+    ${rev.map((s) => `<circle class="dot fl-${s.k}" r="5" cx="${x(months)}" cy="${y(s.c.cum[months])}"/>`).join("")}
+    ${ends.map((e) => `<text class="endl" x="${x(months) + 10}" y="${e.y + 4}">${e.s.letter}</text>`).join("")}
     <g id="cross"><line class="cross" y1="${m.t}" y2="${H - m.b}"/>${rev.map((s) => `<circle class="dot fl-${s.k}" r="5" data-k="${s.k}"/>`).join("")}</g></svg>`;
-  el.setAttribute("aria-label", "Running total over two years. " + sel.map((s) => `${full(s.p)} reaches ${usd(s.c.cum[24])}.`).join(" ") + " Use the left and right arrow keys to read each month.");
-  const month = lineState ? lineState.month : 24;
-  lineState = { sel, x, y, m, W, month };
+  el.setAttribute("aria-label", `Running total over ${spanText(months / 12)}. ` + sel.map((s) => `${full(s.p)} reaches ${usd(s.c.cum[months])}.`).join(" ") + " Use the left and right arrow keys to move along the time span.");
+  const month = lineState && lineState.months === months ? lineState.month : months;   // a new time span starts at its end
+  lineState = { sel, x, y, m, W, month, months };
   showMonth(month);
 }
 
 function showMonth(month) {
   const s = lineState; if (!s) return;
-  month = Math.min(24, Math.max(1, Math.round(month))); s.month = month;
+  month = Math.min(s.months, Math.max(1, Math.round(month))); s.month = month;
   const cross = $("line-chart").querySelector("#cross");
   const cx = s.x(month - 0.5);
   cross.querySelector("line").setAttribute("x1", cx); cross.querySelector("line").setAttribute("x2", cx);
@@ -520,7 +568,7 @@ function showMonth(month) {
   });
   const box = $("readout"); box.textContent = "";
   const when = document.createElement("div"); when.className = "when";
-  when.textContent = month === 24 ? "After two years" : month === 12 ? "After one year" : `After month ${month}`;
+  when.textContent = whenText(month);
   box.appendChild(when);
   s.sel.forEach((it) => {
     const row = document.createElement("div"); row.className = "r";
@@ -553,7 +601,8 @@ function renderCompare(all) {
   for (const id of order) { if (state.cmp.length >= 2) break; if (!state.cmp.includes(id)) state.cmp.push(id); }
 
   const taxPct = taxFor(state.where);
-  const sel = state.cmp.map((id, i) => ({ p: byId(id), k: SLOTS[i], letter: SLOTS[i].toUpperCase(), c: costs(byId(id), state.lines, taxPct) }));
+  const months = state.years * 12;
+  const sel = state.cmp.map((id, i) => ({ p: byId(id), k: SLOTS[i], letter: SLOTS[i].toUpperCase(), c: costs(byId(id), state.lines, taxPct, months) }));
   const n = sel.length;
 
   // Plan pickers.
@@ -573,20 +622,24 @@ function renderCompare(all) {
   $("cmp-legend").innerHTML = sel.map((s) => `<span><span class="badge s-${s.k}">${s.letter}</span>${esc(full(s.p))}</span>`).join("");
   $("cmp-basis").textContent = `Costs are for ${people(state.lines)} in ${STATE_NAMES[state.where] || "the average US state"}.`;
 
-  const byTotal = [...sel].sort((a, b) => a.c.cum[24] - b.c.cum[24]);
+  const span = spanText(state.years);
+  const byTotal = [...sel].sort((a, b) => a.c.cum[months] - b.c.cum[months]);
   const best = byTotal[0], rest = byTotal.slice(1);
-  const allSame = rest.every((s) => Math.round(s.c.cum[24]) === Math.round(best.c.cum[24]));
-  $("verdict").textContent = allSame ? `These plans cost the same over two years: ${usd(best.c.cum[24])}.`
-    : `Over two years, ${full(best.p)} costs the least: ${usd(best.c.cum[24])}.`;
-  $("verdict-sub").textContent = allSame ? "" : rest.map((s) => `${full(s.p)}: ${usd(s.c.cum[24] - best.c.cum[24])} more.`).join(" ");
+  const allSame = rest.every((s) => Math.round(s.c.cum[months]) === Math.round(best.c.cum[months]));
+  $("verdict").textContent = allSame ? `These plans cost the same over ${span}: ${usd(best.c.cum[months])}.`
+    : `Over ${span}, ${full(best.p)} costs the least: ${usd(best.c.cum[months])}.`;
+  $("verdict-sub").textContent = allSame ? "" : rest.map((s) => `${full(s.p)}: ${usd(s.c.cum[months] - best.c.cum[months])} more.`).join(" ");
+  $("line-sub").textContent = `Running total over ${span}, with tax and fees. After any promo ends, this assumes you keep the plan at today's regular price. Touch the chart to read a point in time.`;
+  if ($("years").value !== String(state.years) && document.activeElement !== $("years")) $("years").value = state.years;
+  $("years-range").value = state.years;
 
-  if (!$("view-compare").hidden) { drawLine(sel); drawBars(sel); }
+  if (!$("view-compare").hidden) { drawLine(sel, months); drawBars(sel); }
 
   // Details. Money rows sit side by side and mark the lowest; text rows stack.
   const money = (label, get, mark) => ({ label, vals: sel.map((s) => usd(get(s))), raw: mark ? sel.map((s) => Math.round(get(s))) : null });
   const text = (label, get) => ({ label, vals: sel.map(get), stack: true });
   const rows = [
-    money("Two years together", (s) => s.c.cum[24], true),
+    money(state.years === 1 ? "One year together" : `${state.years} years together`, (s) => s.c.cum[months], true),
     money("Real cost, year 1", (s) => s.c.year1, true),
     money("Real cost, year 2", (s) => s.c.year2, true),
     money("Average per month, year 1", (s) => s.c.monthly, false),
@@ -646,6 +699,17 @@ $("budget").addEventListener("input", (e) => {
   if (v > 0) { state.budget = v; save(); render(); }
 });
 
+// Time span for the comparison, 1 to 100 years.
+const setYears = (raw) => {
+  const v = Math.round(parseFloat(raw));
+  if (!(v >= 1)) return;
+  state.years = Math.min(100, v); save(); renderCompare();
+};
+$("years").value = state.years;
+$("years").addEventListener("input", (e) => setYears(e.target.value));
+$("years").addEventListener("blur", (e) => { e.target.value = state.years; });
+$("years-range").addEventListener("input", (e) => setYears(e.target.value));
+
 // Compare controls: change a slot, remove a slot, add a slot.
 $("slots").addEventListener("change", (e) => {
   const i = e.target.dataset.slot; if (i == null) return;
@@ -671,12 +735,13 @@ document.addEventListener("click", (e) => {
 
 // Line chart read-out: touch, mouse or arrow keys pick the month; it stays until you pick another.
 const chartEl = $("line-chart");
-const monthAt = (e) => { const s = lineState, r = chartEl.getBoundingClientRect(); return Math.ceil(((e.clientX - r.left) - s.m.l) / (s.W - s.m.l - s.m.r) * 24); };
+const monthAt = (e) => { const s = lineState, r = chartEl.getBoundingClientRect(); return Math.ceil(((e.clientX - r.left) - s.m.l) / (s.W - s.m.l - s.m.r) * s.months); };
 chartEl.addEventListener("pointermove", (e) => { if (lineState) showMonth(monthAt(e)); });
 chartEl.addEventListener("pointerdown", (e) => { if (lineState) showMonth(monthAt(e)); });
 chartEl.addEventListener("keydown", (e) => {
   if (!lineState || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
-  e.preventDefault(); showMonth(lineState.month + (e.key === "ArrowRight" ? 1 : -1));
+  const stepBy = Math.max(1, Math.round(lineState.months / 24));   // a month at a time up to two years, then coarser
+  e.preventDefault(); showMonth(lineState.month + (e.key === "ArrowRight" ? stepBy : -stepBy));
 });
 // Bar hover labels for mouse users; touch users read the same values printed beside each bar.
 document.addEventListener("pointermove", (e) => {
