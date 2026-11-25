@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
 <style>
-/* Layout: one narrow column. Five inputs, three picks, one table. Nothing else. */
+/* Layout: one narrow column, two views. Find: five inputs, three picks, one table. Compare: two plans side by side. */
 :root {
   --bg: #fbfcfc;
   --surface: #f1f4f4;
@@ -25,6 +25,7 @@
   --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--fg);
   font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -39,6 +40,18 @@ body {
 h1 { font-family: var(--font-display); font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
 .sub { color: var(--muted); margin: 6px 0 0; }
+.view { display: flex; flex-direction: column; gap: 36px; }
+nav { display: flex; gap: 20px; border-bottom: 1px solid var(--line); }
+nav a { color: var(--muted); text-decoration: none; padding: 0 0 10px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+nav a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--fg); }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 24px; }
+.verdict { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
+table.cmp { min-width: 0; table-layout: fixed; }
+table.cmp th, table.cmp td { text-align: left; white-space: normal; padding: 12px 12px 12px 0; overflow-wrap: anywhere; }
+table.cmp thead th { font-size: 15px; font-weight: 600; color: var(--fg); padding-bottom: 12px; vertical-align: top; }
+table.cmp tbody th { width: 30%; font-size: 13px; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line); vertical-align: top; }
+table.cmp td.best { color: var(--accent); font-weight: 600; }
+table.cmp tr.key td { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
 .num { font-variant-numeric: tabular-nums; }
 
 .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px 24px; align-items: end; }
@@ -99,6 +112,12 @@ footer a { color: inherit; }
     <p class="sub">US plans for international students. See what each one really costs in a year.</p>
   </header>
 
+  <nav aria-label="Pages">
+    <a href="#find" id="nav-find">Find a plan</a>
+    <a href="#compare" id="nav-compare">Compare two plans</a>
+  </nav>
+
+  <div class="view" id="view-find">
   <section aria-label="Your details">
     <div class="controls">
       <div class="field">
@@ -163,6 +182,33 @@ footer a { color: inherit; }
     </div>
   </section>
 
+  </div>
+
+  <div class="view" id="view-compare" hidden>
+    <section aria-label="Plans to compare">
+      <div class="pair">
+        <div class="field">
+          <label for="plan-a">Plan A</label>
+          <select id="plan-a"></select>
+        </div>
+        <div class="field">
+          <label for="plan-b">Plan B</label>
+          <select id="plan-b"></select>
+        </div>
+      </div>
+      <p class="hint" id="cmp-basis"></p>
+    </section>
+    <section>
+      <p class="verdict" id="verdict"></p>
+    </section>
+    <section>
+      <table class="cmp">
+        <thead><tr><th scope="col"><span hidden>Detail</span></th><th scope="col" id="head-a"></th><th scope="col" id="head-b"></th></tr></thead>
+        <tbody id="cmp-rows"></tbody>
+      </table>
+    </section>
+  </div>
+
   <footer>
     <span id="checked"></span>
     <span>Real cost = the first year's price after any promo, plus taxes and carrier fees. Where a carrier doesn't include taxes, they're estimated at <span id="tax"></span> for state and local wireless taxes (<a href="https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/" target="_blank" rel="noopener">Tax Foundation, July 2026</a>). Your city or county can be a little higher or lower, and some carriers add a federal surcharge. Confirm the price at checkout.</span>
@@ -173,14 +219,14 @@ footer a { color: inherit; }
 
 <script>
 // Seed copy of plans.json, so the page works even if the live file can't be fetched.
-let DATA = {"checked":"2026-11-24","notes":"One-line monthly prices in USD. lineTotals = total monthly price for that many lines; otherwise extra lines cost addLine each. promo.price is per line for promo.months, then price applies. upfrontMonths = months you must prepay. fastGB = full-speed data per month (999 = no stated cap). intlWide = calls to many countries are included in the price.","plans":[{"id":"mint-6","carrier":"Mint Mobile","plan":"6GB","network":"T-Mobile","data":"6GB","advertised":15,"price":15,"addLine":15,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.whistleout.com/CellPhones/Guides/best-mint-mobile-plans","unlimited":false,"fastGB":6,"intl":"Free calls to Mexico, Canada and the UK","intlWide":false},{"id":"mint-17","carrier":"Mint Mobile","plan":"17GB","network":"T-Mobile","data":"17GB","advertised":15,"promo":{"price":15,"months":12,"label":"Holiday promo, new customers"},"price":20,"addLine":20,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":false,"fastGB":17,"intl":"Free calls to Mexico, Canada and the UK","intlWide":false},{"id":"mint-unl","carrier":"Mint Mobile","plan":"Unlimited","network":"T-Mobile","data":"Unlimited, 50GB fast","advertised":15,"promo":{"price":15,"months":12,"label":"Holiday promo, new customers"},"price":30,"addLine":30,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":50,"intl":"Free calls to Mexico, Canada and the UK","intlWide":false},{"id":"visible","carrier":"Visible","plan":"Visible","network":"Verizon","data":"Unlimited","advertised":19,"promo":{"price":19,"months":12,"label":"Code HOLIDAYHACK"},"price":25,"addLine":25,"taxesIncluded":true,"noCreditCheck":true,"notes":["Needs code HOLIDAYHACK"],"link":"https://www.visible.com/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intl":"Calls to Mexico and Canada","intlWide":false},{"id":"usm-starter","carrier":"US Mobile","plan":"Unlimited Starter","network":"Choice of 3 networks","data":"Unlimited","advertised":25,"price":25,"addLine":25,"taxesIncluded":true,"noCreditCheck":true,"notes":["$270 if you pay for the year up front"],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intl":"International calls included, US Mobile says","intlWide":true},{"id":"usm-light","carrier":"US Mobile","plan":"Light","network":"Choice of 3 networks","data":"2GB, shared","advertised":10,"price":10,"addLine":8,"taxesIncluded":true,"noCreditCheck":true,"notes":["Extra lines share the 2GB"],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":false,"fastGB":2,"intl":"International calls included, US Mobile says","intlWide":true},{"id":"tello-10","carrier":"Tello","plan":"Everyday 10GB","network":"T-Mobile","data":"10GB","advertised":15,"price":15,"addLine":15,"taxesIncluded":false,"noCreditCheck":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":false,"fastGB":10,"intl":"Free calls to 60+ countries","intlWide":true},{"id":"tello-unl","carrier":"Tello","plan":"Unlimited","network":"T-Mobile","data":"Unlimited, 50GB fast","advertised":25,"price":25,"addLine":25,"taxesIncluded":false,"noCreditCheck":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":50,"intl":"Free calls to 60+ countries, up to 1,000 min","intlWide":true},{"id":"ultra-unl","carrier":"Ultra Mobile","plan":"Unlimited","network":"T-Mobile","data":"Unlimited","advertised":17,"promo":{"price":17,"months":12,"label":"50% off first year"},"price":34,"addLine":34,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.ultramobile.com/plans/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intl":"Unlimited calls to 90+ countries","intlWide":true},{"id":"cricket-select","carrier":"Cricket","plan":"Select Unlimited","network":"AT&T","data":"Unlimited","advertised":35,"price":35,"lineTotals":{"4":100},"taxesIncluded":true,"noCreditCheck":true,"notes":["Price needs AutoPay"],"link":"https://www.cricketwireless.com/cell-phone-plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intlWide":false},{"id":"fi-essentials","carrier":"Google Fi","plan":"Unlimited Essentials","network":"T-Mobile","data":"Unlimited, 30GB fast","advertised":35,"price":35,"lineTotals":{"4":90},"taxesIncluded":false,"noCreditCheck":false,"notes":[],"link":"https://fi.google.com/about/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":30,"intlWide":false},{"id":"tmo-essentials","carrier":"T-Mobile","plan":"Essentials 2.0","network":"T-Mobile","data":"Unlimited, 50GB fast","advertised":60,"price":60,"lineTotals":{"4":105},"feePerLine":5.49,"taxesIncluded":false,"noCreditCheck":false,"notes":["Postpaid: may ask for an SSN or a deposit","$5.49 per line monthly fee","Price needs AutoPay"],"link":"https://www.t-mobile.com/cell-phone-plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":50,"intlWide":false},{"id":"att-pre-12","carrier":"AT&T Prepaid","plan":"12-month Unlimited","network":"AT&T","data":"Unlimited, 16GB fast","advertised":20,"price":20,"addLine":20,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":["One line per account"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","unlimited":true,"fastGB":16,"intl":"Calls to Canada and Mexico","intlWide":false},{"id":"att-pre-unl","carrier":"AT&T Prepaid","plan":"Unlimited","network":"AT&T","data":"Unlimited, capped at 3Mbps","advertised":25,"price":25,"addLine":25,"taxesIncluded":false,"noCreditCheck":true,"notes":["Price locked for 5 years","One line per account"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","unlimited":true,"fastGB":30,"intlWide":false},{"id":"att-pre-ultra","carrier":"AT&T Prepaid","plan":"Unlimited Ultra","network":"AT&T","data":"Unlimited, full speed","advertised":45,"promo":{"price":45,"months":6,"label":"$45 for first 6 months"},"price":60,"addLine":60,"taxesIncluded":false,"noCreditCheck":true,"notes":["Then $60/mo"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","unlimited":true,"fastGB":999,"intl":"500 minutes to 30+ countries","intlWide":true},{"id":"att-value","carrier":"AT&T","plan":"Value 2.0","network":"AT&T","data":"Unlimited, 5GB fast","advertised":50,"price":50,"lineTotals":{"4":120},"taxesIncluded":false,"noCreditCheck":false,"notes":["Postpaid: may ask for an SSN or a deposit","Price needs AutoPay"],"link":"https://www.att.com/plans/wireless/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":5,"intl":"Calls to Canada and Mexico","intlWide":false}],"taxes":{"what":"Average state and local wireless tax rate, percent of the bill. Excludes the federal surcharge.","asOf":"July 2026","source":"https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/","usAverage":14.42,"states":{"AL":12.73,"AK":14.7,"AZ":12.95,"AR":22.04,"CA":13.24,"CO":16.76,"CT":8.73,"DE":8.68,"FL":15.11,"GA":13.23,"HI":8.15,"ID":3.39,"IL":25.02,"IN":11.29,"IA":10.11,"KS":19.11,"KY":11.55,"LA":18.6,"ME":8.82,"MD":17.59,"MA":10.78,"MI":10.1,"MN":12.35,"MS":13.19,"MO":16.38,"MT":7.07,"NE":18.31,"NV":6.07,"NH":10.02,"NJ":9.34,"NM":13.81,"NY":20.64,"NC":9.14,"ND":16.5,"OH":9.81,"OK":16.42,"OR":9.57,"PA":17.88,"RI":15.77,"SC":13.9,"SD":16.78,"TN":14.03,"TX":17.49,"UT":18.18,"VT":9.17,"VA":7.84,"WA":21.85,"WV":13.22,"WI":9.32,"WY":8.45,"DC":12.29}}};
+let DATA = {"checked":"2026-11-24","notes":"One-line monthly prices in USD. lineTotals = total monthly price for that many lines; otherwise extra lines cost addLine each. promo.price is per line for promo.months, then price applies. upfrontMonths = months you must prepay. fastGB = full-speed data per month (999 = no stated cap). intlWide = calls to many countries are included in the price.","plans":[{"id":"mint-6","carrier":"Mint Mobile","plan":"6GB","network":"T-Mobile","data":"6GB","advertised":15,"price":15,"addLine":15,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.whistleout.com/CellPhones/Guides/best-mint-mobile-plans","unlimited":false,"fastGB":6,"intl":"Free calls to Mexico, Canada and the UK","intlWide":false},{"id":"mint-17","carrier":"Mint Mobile","plan":"17GB","network":"T-Mobile","data":"17GB","advertised":15,"promo":{"price":15,"months":12,"label":"Holiday promo, new customers"},"price":20,"addLine":20,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":false,"fastGB":17,"intl":"Free calls to Mexico, Canada and the UK","intlWide":false},{"id":"mint-unl","carrier":"Mint Mobile","plan":"Unlimited","network":"T-Mobile","data":"Unlimited, 50GB fast","advertised":15,"promo":{"price":15,"months":12,"label":"Holiday promo, new customers"},"price":30,"addLine":30,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":50,"intl":"Free calls to Mexico, Canada and the UK","intlWide":false},{"id":"visible","carrier":"Visible","plan":"Visible","network":"Verizon","data":"Unlimited","advertised":19,"promo":{"price":19,"months":12,"label":"With code HOLIDAYHACK"},"price":25,"addLine":25,"taxesIncluded":true,"noCreditCheck":true,"notes":[],"link":"https://www.visible.com/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intl":"Calls to Mexico and Canada","intlWide":false},{"id":"usm-starter","carrier":"US Mobile","plan":"Unlimited Starter","network":"Choice of 3 networks","data":"Unlimited","advertised":25,"price":25,"addLine":25,"taxesIncluded":true,"noCreditCheck":true,"notes":["$270 if you pay for the year up front"],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intl":"International calls included, US Mobile says","intlWide":true},{"id":"usm-light","carrier":"US Mobile","plan":"Light","network":"Choice of 3 networks","data":"2GB, shared","advertised":10,"price":10,"addLine":8,"taxesIncluded":true,"noCreditCheck":true,"notes":["Extra lines share the 2GB"],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":false,"fastGB":2,"intl":"International calls included, US Mobile says","intlWide":true},{"id":"tello-10","carrier":"Tello","plan":"Everyday 10GB","network":"T-Mobile","data":"10GB","advertised":15,"price":15,"addLine":15,"taxesIncluded":false,"noCreditCheck":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":false,"fastGB":10,"intl":"Free calls to 60+ countries","intlWide":true},{"id":"tello-unl","carrier":"Tello","plan":"Unlimited","network":"T-Mobile","data":"Unlimited, 50GB fast","advertised":25,"price":25,"addLine":25,"taxesIncluded":false,"noCreditCheck":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":50,"intl":"Free calls to 60+ countries, up to 1,000 min","intlWide":true},{"id":"ultra-unl","carrier":"Ultra Mobile","plan":"Unlimited","network":"T-Mobile","data":"Unlimited","advertised":17,"promo":{"price":17,"months":12,"label":"50% off first year"},"price":34,"addLine":34,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":[],"link":"https://www.ultramobile.com/plans/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intl":"Unlimited calls to 90+ countries","intlWide":true},{"id":"cricket-select","carrier":"Cricket","plan":"Select Unlimited","network":"AT&T","data":"Unlimited","advertised":35,"price":35,"lineTotals":{"4":100},"taxesIncluded":true,"noCreditCheck":true,"notes":["Price needs AutoPay"],"link":"https://www.cricketwireless.com/cell-phone-plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":999,"intlWide":false},{"id":"fi-essentials","carrier":"Google Fi","plan":"Unlimited Essentials","network":"T-Mobile","data":"Unlimited, 30GB fast","advertised":35,"price":35,"lineTotals":{"4":90},"taxesIncluded":false,"noCreditCheck":false,"notes":[],"link":"https://fi.google.com/about/plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":30,"intlWide":false},{"id":"tmo-essentials","carrier":"T-Mobile","plan":"Essentials 2.0","network":"T-Mobile","data":"Unlimited, 50GB fast","advertised":60,"price":60,"lineTotals":{"4":105},"feePerLine":5.49,"taxesIncluded":false,"noCreditCheck":false,"notes":["Postpaid: may ask for an SSN or a deposit","$5.49 per line monthly fee","Price needs AutoPay"],"link":"https://www.t-mobile.com/cell-phone-plans","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":50,"intlWide":false},{"id":"att-pre-12","carrier":"AT&T Prepaid","plan":"12-month Unlimited","network":"AT&T","data":"Unlimited, 16GB fast","advertised":20,"price":20,"addLine":20,"taxesIncluded":false,"upfrontMonths":12,"noCreditCheck":true,"notes":["One line per account"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","unlimited":true,"fastGB":16,"intl":"Calls to Canada and Mexico","intlWide":false},{"id":"att-pre-unl","carrier":"AT&T Prepaid","plan":"Unlimited","network":"AT&T","data":"Unlimited, capped at 3Mbps","advertised":25,"price":25,"addLine":25,"taxesIncluded":false,"noCreditCheck":true,"notes":["Price locked for 5 years","One line per account"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","unlimited":true,"fastGB":30,"intlWide":false},{"id":"att-pre-ultra","carrier":"AT&T Prepaid","plan":"Unlimited Ultra","network":"AT&T","data":"Unlimited, full speed","advertised":45,"promo":{"price":45,"months":6,"label":"$45 for first 6 months"},"price":60,"addLine":60,"taxesIncluded":false,"noCreditCheck":true,"notes":["Then $60/mo"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","unlimited":true,"fastGB":999,"intl":"500 minutes to 30+ countries","intlWide":true},{"id":"att-value","carrier":"AT&T","plan":"Value 2.0","network":"AT&T","data":"Unlimited, 5GB fast","advertised":50,"price":50,"lineTotals":{"4":120},"taxesIncluded":false,"noCreditCheck":false,"notes":["Postpaid: may ask for an SSN or a deposit","Price needs AutoPay"],"link":"https://www.att.com/plans/wireless/","source":"https://www.usmobile.com/blog/cell-phone-plans-november-2026/","unlimited":true,"fastGB":5,"intl":"Calls to Canada and Mexico","intlWide":false}],"taxes":{"what":"Average state and local wireless tax rate, percent of the bill. Excludes the federal surcharge.","asOf":"July 2026","source":"https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/","usAverage":14.42,"states":{"AL":12.73,"AK":14.7,"AZ":12.95,"AR":22.04,"CA":13.24,"CO":16.76,"CT":8.73,"DE":8.68,"FL":15.11,"GA":13.23,"HI":8.15,"ID":3.39,"IL":25.02,"IN":11.29,"IA":10.11,"KS":19.11,"KY":11.55,"LA":18.6,"ME":8.82,"MD":17.59,"MA":10.78,"MI":10.1,"MN":12.35,"MS":13.19,"MO":16.38,"MT":7.07,"NE":18.31,"NV":6.07,"NH":10.02,"NJ":9.34,"NM":13.81,"NY":20.64,"NC":9.14,"ND":16.5,"OH":9.81,"OK":16.42,"OR":9.57,"PA":17.88,"RI":15.77,"SC":13.9,"SD":16.78,"TN":14.03,"TX":17.49,"UT":18.18,"VT":9.17,"VA":7.84,"WA":21.85,"WV":13.22,"WI":9.32,"WY":8.45,"DC":12.29}}};
 
 const $ = (id) => document.getElementById(id);
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const STATE_NAMES = { AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia", FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming" };
 const DATA_NEEDS = ["0", "2", "5", "10", "20", "50", "unl"];
 const CALLS = ["never", "sometimes", "often"];
-const state = { budget: 30, lines: 1, where: "", data: "0", calls: "never" };
+const state = { budget: 30, lines: 1, where: "", data: "0", calls: "never", a: "mint-unl", b: "visible" };
 try {
   const saved = JSON.parse(localStorage.getItem("spp") || "{}");
   if (saved.budget > 0) state.budget = saved.budget;
@@ -188,6 +234,8 @@ try {
   if (STATE_NAMES[saved.where]) state.where = saved.where;
   if (DATA_NEEDS.includes(saved.data)) state.data = saved.data;
   if (CALLS.includes(saved.calls)) state.calls = saved.calls;
+  if (typeof saved.a === "string") state.a = saved.a;
+  if (typeof saved.b === "string") state.b = saved.b;
 } catch (e) {}
 
 /* Cost of one plan for `lines` people at a tax rate. Pure. */
@@ -227,6 +275,7 @@ function taxFor(where) {
   return r != null ? r : (t.usAverage != null ? t.usAverage : 14);
 }
 
+const full = (p) => p.plan === p.carrier ? p.carrier : `${p.carrier} ${p.plan}`;
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
 function render() {
@@ -248,7 +297,7 @@ function render() {
     $("picks").innerHTML = picks.slice(0, 3).map(({ why, x }) => `
       <div class="pick">
         <span class="why">${esc(why)}</span>
-        <span class="name">${esc(x.p.carrier)} ${esc(x.p.plan)}</span>
+        <span class="name">${esc(full(x.p))}</span>
         <span class="price num">${usd(x.c.monthly)}<small> / mo real cost</small></span>
         <span class="meta num">${usd(x.c.year1)} a year · ${esc(x.p.data)}</span>
         ${state.calls !== "never" && x.p.intl ? `<span class="meta">${esc(x.p.intl)}</span>` : ""}
@@ -259,7 +308,7 @@ function render() {
     // Closest = cheapest plan that meets the data and calling needs, ignoring budget.
     const near = all.find((x) => x.miss.length === 1 && x.miss[0] === "Over budget") || all[0];
     const overBy = near.c.monthly - state.budget;
-    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(near.p.carrier)} ${esc(near.p.plan)} at ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget` : ""}.</div>`;
+    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(full(near.p))} at ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget` : ""}.</div>`;
   }
 
   $("rows").innerHTML = all.map(({ p, c, miss }) => {
@@ -273,7 +322,7 @@ function render() {
     const hidden = c.year1 - c.advertised;
     return `
       <tr class="${miss.length ? "over" : "fits"}">
-        <td><span class="name"><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.carrier)} ${esc(p.plan)}</a></span>
+        <td><span class="name"><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(full(p))}</a></span>
             <span class="tag">${esc(miss[0] || "Good fit")}</span>
             <div class="meta">${notes.map(esc).join(" · ")}</div></td>
         <td>${esc(p.data)}</td>
@@ -285,12 +334,70 @@ function render() {
       </tr>`;
   }).join("");
 
+  renderCompare();
   $("hint").hidden = state.calls === "never";
   const checked = new Date(DATA.checked + "T12:00:00");
   const days = Math.floor((Date.now() - checked.getTime()) / 86400000);
   $("checked").innerHTML = `Prices checked ${checked.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
     + (days > 14 ? ` <span class="stale">That was ${days} days ago, so some prices may have changed.</span>` : "");
   $("tax").textContent = taxPct.toFixed(1) + "%, the " + (STATE_NAMES[state.where] ? STATE_NAMES[state.where] + " average" : "US average");
+}
+
+function renderCompare() {
+  const plans = DATA.plans;
+  const byId = (id) => plans.find((p) => p.id === id);
+  if (!byId(state.a)) state.a = plans[0].id;
+  if (!byId(state.b)) state.b = (plans.find((p) => p.id !== state.a) || plans[0]).id;
+  const options = plans.map((p) => `<option value="${esc(p.id)}">${esc(full(p))}</option>`).join("");
+  for (const [id, key] of [["plan-a", "a"], ["plan-b", "b"]]) {
+    if ($(id).options.length !== plans.length) $(id).innerHTML = options;
+    $(id).value = state[key];
+  }
+
+  const taxPct = taxFor(state.where);
+  const A = byId(state.a), B = byId(state.b);
+  const ca = costs(A, state.lines, taxPct), cb = costs(B, state.lines, taxPct);
+  const name = full;
+  $("head-a").textContent = name(A);
+  $("head-b").textContent = name(B);
+
+  const place = STATE_NAMES[state.where] || "the average US state";
+  $("cmp-basis").textContent = `Costs are for ${state.lines} ${state.lines === 1 ? "person" : "people"} in ${place}. Change that on the Find a plan page.`;
+
+  const gap = Math.round(ca.year1) - Math.round(cb.year1);
+  $("verdict").textContent = state.a === state.b ? "Pick two different plans to compare."
+    : gap === 0 ? "Both plans cost the same in the first year."
+    : `${name(gap < 0 ? A : B)} costs ${usd(Math.abs(gap))} less in the first year.`;
+
+  // Each row: label, value for A, value for B, and which side is better (-1 A, 1 B, 0 neither).
+  const lower = (x, y) => Math.round(x) === Math.round(y) ? 0 : x < y ? -1 : 1;
+  const good = (p) => [p.promo ? p.promo.label : "", ...(p.notes || [])].filter(Boolean).join(". ") || "Nothing extra";
+  const rows = [
+    ["Real cost per year", usd(ca.year1), usd(cb.year1), lower(ca.year1, cb.year1), "key"],
+    ["Real cost per month", usd(ca.monthly), usd(cb.monthly), lower(ca.monthly, cb.monthly)],
+    ["Advertised per year", usd(ca.advertised), usd(cb.advertised), 0],
+    ["Taxes and fees per year", A.taxesIncluded ? "Included" : usd(ca.year1 - ca.advertised), B.taxesIncluded ? "Included" : usd(cb.year1 - cb.advertised), 0],
+    ["Cost in year 2", usd(ca.year2), usd(cb.year2), lower(ca.year2, cb.year2)],
+    ["Pay up front", ca.upfront ? usd(ca.upfront) : "Nothing, pay monthly", cb.upfront ? usd(cb.upfront) : "Nothing, pay monthly", 0],
+    ["Data", A.data, B.data, 0],
+    ["Network", A.network, B.network, 0],
+    ["International calls", A.intl || "Not included", B.intl || "Not included", 0],
+    ["Credit check", A.noCreditCheck ? "None" : "May apply", B.noCreditCheck ? "None" : "May apply", 0],
+    ["Good to know", good(A), good(B), 0],
+  ];
+  $("cmp-rows").innerHTML = rows.map(([label, a, b, win, cls]) => `
+    <tr class="${cls || ""}"><th scope="row">${esc(label)}</th>
+      <td class="num${win === -1 ? " best" : ""}">${esc(a)}</td>
+      <td class="num${win === 1 ? " best" : ""}">${esc(b)}</td></tr>`).join("");
+}
+
+function route() {
+  const compare = location.hash === "#compare";
+  $("view-find").hidden = compare;
+  $("view-compare").hidden = !compare;
+  $("nav-find").toggleAttribute("aria-current", !compare);
+  $("nav-compare").toggleAttribute("aria-current", compare);
+  if (!compare) $("nav-find").setAttribute("aria-current", "page"); else $("nav-compare").setAttribute("aria-current", "page");
 }
 
 function save() { try { localStorage.setItem("spp", JSON.stringify(state)); } catch (e) {} }
@@ -308,6 +415,9 @@ bind("state", "where", String);
 bind("data", "data", String);
 bind("calls", "calls", String);
 bind("lines", "lines", Number);
+bind("plan-a", "a", String);
+bind("plan-b", "b", String);
+window.addEventListener("hashchange", route);
 $("budget").addEventListener("input", (e) => {
   const v = parseFloat(e.target.value);
   if (v > 0) { state.budget = v; save(); render(); }
@@ -325,7 +435,7 @@ async function refresh() {
   } catch (e) {}
 }
 
-render(); refresh();
+route(); render(); refresh();
 setInterval(refresh, 30 * 60 * 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 </script>

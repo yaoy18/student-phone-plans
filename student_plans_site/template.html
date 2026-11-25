@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
 <style>
-/* Layout: one narrow column. Five inputs, three picks, one table. Nothing else. */
+/* Layout: one narrow column, two views. Find: five inputs, three picks, one table. Compare: two plans side by side. */
 :root {
   --bg: #fbfcfc;
   --surface: #f1f4f4;
@@ -25,6 +25,7 @@
   --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--fg);
   font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -39,6 +40,18 @@ body {
 h1 { font-family: var(--font-display); font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
 .sub { color: var(--muted); margin: 6px 0 0; }
+.view { display: flex; flex-direction: column; gap: 36px; }
+nav { display: flex; gap: 20px; border-bottom: 1px solid var(--line); }
+nav a { color: var(--muted); text-decoration: none; padding: 0 0 10px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+nav a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--fg); }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 24px; }
+.verdict { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
+table.cmp { min-width: 0; table-layout: fixed; }
+table.cmp th, table.cmp td { text-align: left; white-space: normal; padding: 12px 12px 12px 0; overflow-wrap: anywhere; }
+table.cmp thead th { font-size: 15px; font-weight: 600; color: var(--fg); padding-bottom: 12px; vertical-align: top; }
+table.cmp tbody th { width: 30%; font-size: 13px; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line); vertical-align: top; }
+table.cmp td.best { color: var(--accent); font-weight: 600; }
+table.cmp tr.key td { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
 .num { font-variant-numeric: tabular-nums; }
 
 .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px 24px; align-items: end; }
@@ -99,6 +112,12 @@ footer a { color: inherit; }
     <p class="sub">US plans for international students. See what each one really costs in a year.</p>
   </header>
 
+  <nav aria-label="Pages">
+    <a href="#find" id="nav-find">Find a plan</a>
+    <a href="#compare" id="nav-compare">Compare two plans</a>
+  </nav>
+
+  <div class="view" id="view-find">
   <section aria-label="Your details">
     <div class="controls">
       <div class="field">
@@ -163,6 +182,33 @@ footer a { color: inherit; }
     </div>
   </section>
 
+  </div>
+
+  <div class="view" id="view-compare" hidden>
+    <section aria-label="Plans to compare">
+      <div class="pair">
+        <div class="field">
+          <label for="plan-a">Plan A</label>
+          <select id="plan-a"></select>
+        </div>
+        <div class="field">
+          <label for="plan-b">Plan B</label>
+          <select id="plan-b"></select>
+        </div>
+      </div>
+      <p class="hint" id="cmp-basis"></p>
+    </section>
+    <section>
+      <p class="verdict" id="verdict"></p>
+    </section>
+    <section>
+      <table class="cmp">
+        <thead><tr><th scope="col"><span hidden>Detail</span></th><th scope="col" id="head-a"></th><th scope="col" id="head-b"></th></tr></thead>
+        <tbody id="cmp-rows"></tbody>
+      </table>
+    </section>
+  </div>
+
   <footer>
     <span id="checked"></span>
     <span>Real cost = the first year's price after any promo, plus taxes and carrier fees. Where a carrier doesn't include taxes, they're estimated at <span id="tax"></span> for state and local wireless taxes (<a href="https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/" target="_blank" rel="noopener">Tax Foundation, July 2026</a>). Your city or county can be a little higher or lower, and some carriers add a federal surcharge. Confirm the price at checkout.</span>
@@ -180,7 +226,7 @@ const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const STATE_NAMES = { AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia", FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming" };
 const DATA_NEEDS = ["0", "2", "5", "10", "20", "50", "unl"];
 const CALLS = ["never", "sometimes", "often"];
-const state = { budget: 30, lines: 1, where: "", data: "0", calls: "never" };
+const state = { budget: 30, lines: 1, where: "", data: "0", calls: "never", a: "mint-unl", b: "visible" };
 try {
   const saved = JSON.parse(localStorage.getItem("spp") || "{}");
   if (saved.budget > 0) state.budget = saved.budget;
@@ -188,6 +234,8 @@ try {
   if (STATE_NAMES[saved.where]) state.where = saved.where;
   if (DATA_NEEDS.includes(saved.data)) state.data = saved.data;
   if (CALLS.includes(saved.calls)) state.calls = saved.calls;
+  if (typeof saved.a === "string") state.a = saved.a;
+  if (typeof saved.b === "string") state.b = saved.b;
 } catch (e) {}
 
 /* Cost of one plan for `lines` people at a tax rate. Pure. */
@@ -227,6 +275,7 @@ function taxFor(where) {
   return r != null ? r : (t.usAverage != null ? t.usAverage : 14);
 }
 
+const full = (p) => p.plan === p.carrier ? p.carrier : `${p.carrier} ${p.plan}`;
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
 function render() {
@@ -248,7 +297,7 @@ function render() {
     $("picks").innerHTML = picks.slice(0, 3).map(({ why, x }) => `
       <div class="pick">
         <span class="why">${esc(why)}</span>
-        <span class="name">${esc(x.p.carrier)} ${esc(x.p.plan)}</span>
+        <span class="name">${esc(full(x.p))}</span>
         <span class="price num">${usd(x.c.monthly)}<small> / mo real cost</small></span>
         <span class="meta num">${usd(x.c.year1)} a year · ${esc(x.p.data)}</span>
         ${state.calls !== "never" && x.p.intl ? `<span class="meta">${esc(x.p.intl)}</span>` : ""}
@@ -259,7 +308,7 @@ function render() {
     // Closest = cheapest plan that meets the data and calling needs, ignoring budget.
     const near = all.find((x) => x.miss.length === 1 && x.miss[0] === "Over budget") || all[0];
     const overBy = near.c.monthly - state.budget;
-    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(near.p.carrier)} ${esc(near.p.plan)} at ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget` : ""}.</div>`;
+    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(full(near.p))} at ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget` : ""}.</div>`;
   }
 
   $("rows").innerHTML = all.map(({ p, c, miss }) => {
@@ -273,7 +322,7 @@ function render() {
     const hidden = c.year1 - c.advertised;
     return `
       <tr class="${miss.length ? "over" : "fits"}">
-        <td><span class="name"><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.carrier)} ${esc(p.plan)}</a></span>
+        <td><span class="name"><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(full(p))}</a></span>
             <span class="tag">${esc(miss[0] || "Good fit")}</span>
             <div class="meta">${notes.map(esc).join(" · ")}</div></td>
         <td>${esc(p.data)}</td>
@@ -285,12 +334,70 @@ function render() {
       </tr>`;
   }).join("");
 
+  renderCompare();
   $("hint").hidden = state.calls === "never";
   const checked = new Date(DATA.checked + "T12:00:00");
   const days = Math.floor((Date.now() - checked.getTime()) / 86400000);
   $("checked").innerHTML = `Prices checked ${checked.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
     + (days > 14 ? ` <span class="stale">That was ${days} days ago, so some prices may have changed.</span>` : "");
   $("tax").textContent = taxPct.toFixed(1) + "%, the " + (STATE_NAMES[state.where] ? STATE_NAMES[state.where] + " average" : "US average");
+}
+
+function renderCompare() {
+  const plans = DATA.plans;
+  const byId = (id) => plans.find((p) => p.id === id);
+  if (!byId(state.a)) state.a = plans[0].id;
+  if (!byId(state.b)) state.b = (plans.find((p) => p.id !== state.a) || plans[0]).id;
+  const options = plans.map((p) => `<option value="${esc(p.id)}">${esc(full(p))}</option>`).join("");
+  for (const [id, key] of [["plan-a", "a"], ["plan-b", "b"]]) {
+    if ($(id).options.length !== plans.length) $(id).innerHTML = options;
+    $(id).value = state[key];
+  }
+
+  const taxPct = taxFor(state.where);
+  const A = byId(state.a), B = byId(state.b);
+  const ca = costs(A, state.lines, taxPct), cb = costs(B, state.lines, taxPct);
+  const name = full;
+  $("head-a").textContent = name(A);
+  $("head-b").textContent = name(B);
+
+  const place = STATE_NAMES[state.where] || "the average US state";
+  $("cmp-basis").textContent = `Costs are for ${state.lines} ${state.lines === 1 ? "person" : "people"} in ${place}. Change that on the Find a plan page.`;
+
+  const gap = Math.round(ca.year1) - Math.round(cb.year1);
+  $("verdict").textContent = state.a === state.b ? "Pick two different plans to compare."
+    : gap === 0 ? "Both plans cost the same in the first year."
+    : `${name(gap < 0 ? A : B)} costs ${usd(Math.abs(gap))} less in the first year.`;
+
+  // Each row: label, value for A, value for B, and which side is better (-1 A, 1 B, 0 neither).
+  const lower = (x, y) => Math.round(x) === Math.round(y) ? 0 : x < y ? -1 : 1;
+  const good = (p) => [p.promo ? p.promo.label : "", ...(p.notes || [])].filter(Boolean).join(". ") || "Nothing extra";
+  const rows = [
+    ["Real cost per year", usd(ca.year1), usd(cb.year1), lower(ca.year1, cb.year1), "key"],
+    ["Real cost per month", usd(ca.monthly), usd(cb.monthly), lower(ca.monthly, cb.monthly)],
+    ["Advertised per year", usd(ca.advertised), usd(cb.advertised), 0],
+    ["Taxes and fees per year", A.taxesIncluded ? "Included" : usd(ca.year1 - ca.advertised), B.taxesIncluded ? "Included" : usd(cb.year1 - cb.advertised), 0],
+    ["Cost in year 2", usd(ca.year2), usd(cb.year2), lower(ca.year2, cb.year2)],
+    ["Pay up front", ca.upfront ? usd(ca.upfront) : "Nothing, pay monthly", cb.upfront ? usd(cb.upfront) : "Nothing, pay monthly", 0],
+    ["Data", A.data, B.data, 0],
+    ["Network", A.network, B.network, 0],
+    ["International calls", A.intl || "Not included", B.intl || "Not included", 0],
+    ["Credit check", A.noCreditCheck ? "None" : "May apply", B.noCreditCheck ? "None" : "May apply", 0],
+    ["Good to know", good(A), good(B), 0],
+  ];
+  $("cmp-rows").innerHTML = rows.map(([label, a, b, win, cls]) => `
+    <tr class="${cls || ""}"><th scope="row">${esc(label)}</th>
+      <td class="num${win === -1 ? " best" : ""}">${esc(a)}</td>
+      <td class="num${win === 1 ? " best" : ""}">${esc(b)}</td></tr>`).join("");
+}
+
+function route() {
+  const compare = location.hash === "#compare";
+  $("view-find").hidden = compare;
+  $("view-compare").hidden = !compare;
+  $("nav-find").toggleAttribute("aria-current", !compare);
+  $("nav-compare").toggleAttribute("aria-current", compare);
+  if (!compare) $("nav-find").setAttribute("aria-current", "page"); else $("nav-compare").setAttribute("aria-current", "page");
 }
 
 function save() { try { localStorage.setItem("spp", JSON.stringify(state)); } catch (e) {} }
@@ -308,6 +415,9 @@ bind("state", "where", String);
 bind("data", "data", String);
 bind("calls", "calls", String);
 bind("lines", "lines", Number);
+bind("plan-a", "a", String);
+bind("plan-b", "b", String);
+window.addEventListener("hashchange", route);
 $("budget").addEventListener("input", (e) => {
   const v = parseFloat(e.target.value);
   if (v > 0) { state.budget = v; save(); render(); }
@@ -325,7 +435,7 @@ async function refresh() {
   } catch (e) {}
 }
 
-render(); refresh();
+route(); render(); refresh();
 setInterval(refresh, 30 * 60 * 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 </script>

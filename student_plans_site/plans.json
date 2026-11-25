@@ -82,15 +82,13 @@
       "promo": {
         "price": 19,
         "months": 12,
-        "label": "Code HOLIDAYHACK"
+        "label": "With code HOLIDAYHACK"
       },
       "price": 25,
       "addLine": 25,
       "taxesIncluded": true,
       "noCreditCheck": true,
-      "notes": [
-        "Needs code HOLIDAYHACK"
-      ],
+      "notes": [],
       "link": "https://www.visible.com/plans",
       "source": "https://www.usmobile.com/blog/cell-phone-plans-november-2026/",
       "unlimited": true,
