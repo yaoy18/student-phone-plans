@@ -4,6 +4,11 @@ Newest entries first. Each price update adds an entry here.
 
 ## 2026-11-24
 
+### Public site
+- The site is served by GitHub Pages from `docs/` at
+  https://yaoy18.github.io/student-phone-plans/. `build.py` writes `docs/` on
+  every build, so a push to `main` updates it.
+
 ### Prices now come from each carrier's own site
 - Three agents read plan prices, fees and multi-line prices in Chrome from
   mintmobile.com, ultramobile.com, tello.com, t-mobile.com, prepaid.t-mobile.com,

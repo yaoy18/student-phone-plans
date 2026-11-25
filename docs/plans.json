@@ -1,0 +1,881 @@
+{
+  "checked": "2026-11-24",
+  "notes": "Monthly prices in USD, read from each carrier's own website. price = regular price for one line. lineTotals = regular monthly total for that many lines; otherwise extra lines cost addLine each (or price if absent). promo = a different price for the first promo.months months (promo.lineTotals or promo.addLine for more lines). upfrontMonths = months you must prepay at once. feePerLine = carrier and federal fees per line per month. oneTimeFee = activation or connection charge per line. maxLines = most lines the plan allows. sharedData = the data allowance is split across lines. fastGB = full-speed data per month (999 = no cap stated). intlWide = calls to other countries are included. noCreditCheck = prepaid; no carrier page states its SSN policy.",
+  "taxes": {
+    "what": "Average state and local wireless tax rate, percent of the bill. Excludes the federal surcharge.",
+    "asOf": "July 2026",
+    "source": "https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/",
+    "usAverage": 14.42,
+    "states": {
+      "AL": 12.73,
+      "AK": 14.7,
+      "AZ": 12.95,
+      "AR": 22.04,
+      "CA": 13.24,
+      "CO": 16.76,
+      "CT": 8.73,
+      "DE": 8.68,
+      "FL": 15.11,
+      "GA": 13.23,
+      "HI": 8.15,
+      "ID": 3.39,
+      "IL": 25.02,
+      "IN": 11.29,
+      "IA": 10.11,
+      "KS": 19.11,
+      "KY": 11.55,
+      "LA": 18.6,
+      "ME": 8.82,
+      "MD": 17.59,
+      "MA": 10.78,
+      "MI": 10.1,
+      "MN": 12.35,
+      "MS": 13.19,
+      "MO": 16.38,
+      "MT": 7.07,
+      "NE": 18.31,
+      "NV": 6.07,
+      "NH": 10.02,
+      "NJ": 9.34,
+      "NM": 13.81,
+      "NY": 20.64,
+      "NC": 9.14,
+      "ND": 16.5,
+      "OH": 9.81,
+      "OK": 16.42,
+      "OR": 9.57,
+      "PA": 17.88,
+      "RI": 15.77,
+      "SC": 13.9,
+      "SD": 16.78,
+      "TN": 14.03,
+      "TX": 17.49,
+      "UT": 18.18,
+      "VT": 9.17,
+      "VA": 7.84,
+      "WA": 21.85,
+      "WV": 13.22,
+      "WI": 9.32,
+      "WY": 8.45,
+      "DC": 12.29
+    }
+  },
+  "plans": [
+    {
+      "id": "mint-6",
+      "carrier": "Mint Mobile",
+      "plan": "6GB, 12 months",
+      "network": "T-Mobile",
+      "data": "6GB",
+      "price": 15,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 6,
+      "intlWide": false,
+      "notes": [],
+      "link": "https://www.mintmobile.com/plans/",
+      "source": "https://www.mintmobile.com/plans/",
+      "upfrontMonths": 12,
+      "feePerLine": 1.65,
+      "intl": "Free calls to Mexico, Canada and the UK"
+    },
+    {
+      "id": "mint-17",
+      "carrier": "Mint Mobile",
+      "plan": "17GB, 12 months",
+      "network": "T-Mobile",
+      "data": "17GB",
+      "price": 20,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 17,
+      "intlWide": false,
+      "notes": [],
+      "link": "https://www.mintmobile.com/plans/",
+      "source": "https://www.mintmobile.com/plans/",
+      "upfrontMonths": 12,
+      "feePerLine": 1.85,
+      "promo": {
+        "price": 15,
+        "months": 12,
+        "label": "New customers: first 12 months at $15/mo, then the regular price"
+      },
+      "intl": "Free calls to Mexico, Canada and the UK"
+    },
+    {
+      "id": "mint-unl",
+      "carrier": "Mint Mobile",
+      "plan": "Unlimited, 12 months",
+      "network": "T-Mobile",
+      "data": "Unlimited, 50GB fast",
+      "price": 30,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 50,
+      "intlWide": false,
+      "notes": [],
+      "link": "https://www.mintmobile.com/plans/",
+      "source": "https://www.mintmobile.com/plans/",
+      "upfrontMonths": 12,
+      "feePerLine": 2.31,
+      "promo": {
+        "price": 15,
+        "months": 12,
+        "label": "New customers: first 12 months at $15/mo, then the regular price"
+      },
+      "intl": "Free calls to Mexico, Canada and the UK"
+    },
+    {
+      "id": "ultra-8-mo",
+      "carrier": "Ultra Mobile",
+      "plan": "8GB, monthly",
+      "network": "T-Mobile",
+      "data": "8GB",
+      "price": 24,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 8,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://www.ultramobile.com/plans/",
+      "source": "https://www.ultramobile.com/plans/",
+      "feePerLine": 1.67,
+      "intl": "Unlimited calls to 90+ countries"
+    },
+    {
+      "id": "ultra-8",
+      "carrier": "Ultra Mobile",
+      "plan": "8GB, 12 months",
+      "network": "T-Mobile",
+      "data": "8GB",
+      "price": 17,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 8,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://www.ultramobile.com/plans/",
+      "source": "https://www.ultramobile.com/plans/",
+      "upfrontMonths": 12,
+      "feePerLine": 1.43,
+      "intl": "Unlimited calls to 90+ countries",
+      "promo": {
+        "price": 8.5,
+        "months": 12,
+        "label": "Black Friday, new customers: first 12 months for $102, then $204 a year"
+      }
+    },
+    {
+      "id": "ultra-unl",
+      "carrier": "Ultra Mobile",
+      "plan": "Unlimited, 12 months",
+      "network": "T-Mobile",
+      "data": "Unlimited, 35GB fast",
+      "price": 34,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 35,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://www.ultramobile.com/plans/",
+      "source": "https://www.ultramobile.com/plans/",
+      "upfrontMonths": 12,
+      "feePerLine": 1.85,
+      "intl": "Unlimited calls to 90+ countries",
+      "promo": {
+        "price": 17,
+        "months": 12,
+        "label": "Black Friday, new customers: first 12 months for $204, then $408 a year"
+      }
+    },
+    {
+      "id": "tello-2",
+      "carrier": "Tello",
+      "plan": "2GB",
+      "network": "T-Mobile",
+      "data": "2GB",
+      "price": 10,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 2,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://tello.com/buy/custom_plans",
+      "source": "https://tello.com/buy/custom_plans",
+      "feePerLine": 0.3,
+      "intl": "Free calls to 60+ countries, from your plan minutes"
+    },
+    {
+      "id": "tello-10",
+      "carrier": "Tello",
+      "plan": "10GB",
+      "network": "T-Mobile",
+      "data": "10GB",
+      "price": 15,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 10,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://tello.com/buy/custom_plans",
+      "source": "https://tello.com/buy/custom_plans",
+      "feePerLine": 0.3,
+      "intl": "Free calls to 60+ countries, from your plan minutes"
+    },
+    {
+      "id": "tello-20",
+      "carrier": "Tello",
+      "plan": "20GB",
+      "network": "T-Mobile",
+      "data": "20GB",
+      "price": 20,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 20,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://tello.com/buy/custom_plans",
+      "source": "https://tello.com/buy/custom_plans",
+      "intl": "Free calls to 60+ countries, from your plan minutes"
+    },
+    {
+      "id": "tello-unl",
+      "carrier": "Tello",
+      "plan": "Unlimited",
+      "network": "T-Mobile",
+      "data": "Unlimited, 50GB fast",
+      "price": 25,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 50,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://tello.com/buy/custom_plans",
+      "source": "https://tello.com/buy/custom_plans",
+      "feePerLine": 0.3,
+      "intl": "Free calls to 60+ countries, from your plan minutes"
+    },
+    {
+      "id": "tmo-pre-15",
+      "carrier": "T-Mobile Prepaid",
+      "plan": "Starter 15GB",
+      "network": "T-Mobile",
+      "data": "15GB",
+      "price": 40,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 15,
+      "intlWide": false,
+      "notes": [
+        "Price needs AutoPay",
+        "Prices for 2 to 4 people are without AutoPay"
+      ],
+      "link": "https://prepaid.t-mobile.com/prepaid-plans",
+      "source": "https://prepaid.t-mobile.com/prepaid-plans",
+      "lineTotals": {
+        "2": 75,
+        "3": 105,
+        "4": 135
+      },
+      "promo": {
+        "price": 45,
+        "months": 1,
+        "lineTotals": {
+          "2": 75,
+          "3": 105,
+          "4": 135
+        },
+        "label": "First month is $45"
+      },
+      "intl": "Not included; add-ons from $5/mo"
+    },
+    {
+      "id": "tmo-pre-unl",
+      "carrier": "T-Mobile Prepaid",
+      "plan": "Unlimited",
+      "network": "T-Mobile",
+      "data": "Unlimited, 50GB fast",
+      "price": 45,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 50,
+      "intlWide": false,
+      "notes": [
+        "Price needs AutoPay",
+        "Prices for 2 to 4 people are without AutoPay"
+      ],
+      "link": "https://prepaid.t-mobile.com/prepaid-plans",
+      "source": "https://prepaid.t-mobile.com/prepaid-plans",
+      "lineTotals": {
+        "2": 80,
+        "3": 110,
+        "4": 140
+      },
+      "promo": {
+        "price": 50,
+        "months": 1,
+        "lineTotals": {
+          "2": 80,
+          "3": 110,
+          "4": 140
+        },
+        "label": "First month is $50"
+      },
+      "intl": "Not included; add-ons from $5/mo"
+    },
+    {
+      "id": "tmo-saver",
+      "carrier": "T-Mobile",
+      "plan": "T-Mix Saver",
+      "network": "T-Mobile",
+      "data": "Unlimited, 50GB fast",
+      "price": 45,
+      "taxesIncluded": false,
+      "noCreditCheck": false,
+      "unlimited": true,
+      "fastGB": 50,
+      "intlWide": false,
+      "notes": [
+        "Postpaid: may ask for an SSN or a deposit",
+        "Price needs AutoPay ($55 without)",
+        "$35 connection charge per line"
+      ],
+      "link": "https://www.t-mobile.com/cell-phone-plans",
+      "source": "https://www.t-mobile.com/cell-phone-plans",
+      "lineTotals": {
+        "2": 80
+      },
+      "maxLines": 2,
+      "oneTimeFee": 35,
+      "feePerLine": 5.49,
+      "intl": "Not included; $0.50 a minute"
+    },
+    {
+      "id": "visible",
+      "carrier": "Visible",
+      "plan": "Visible",
+      "network": "Verizon",
+      "data": "Unlimited",
+      "price": 25,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [],
+      "link": "https://www.visible.com/plans",
+      "source": "https://www.visible.com/plans",
+      "intl": "Calls to Mexico and Canada",
+      "promo": {
+        "price": 19,
+        "months": 12,
+        "label": "$19/mo for 12 months with code HOLIDAYHACK, new members"
+      }
+    },
+    {
+      "id": "visible-year",
+      "carrier": "Visible",
+      "plan": "Visible, paid yearly",
+      "network": "Verizon",
+      "data": "Unlimited",
+      "price": 22.92,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [
+        "$275 for 12 months"
+      ],
+      "link": "https://www.visible.com/plans",
+      "source": "https://www.visible.com/plans",
+      "upfrontMonths": 12,
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "visible-plus",
+      "carrier": "Visible",
+      "plan": "Visible+",
+      "network": "Verizon",
+      "data": "Unlimited, never slowed",
+      "price": 35,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [],
+      "link": "https://www.visible.com/plans",
+      "source": "https://www.visible.com/plans",
+      "intl": "Calls to Mexico and Canada",
+      "promo": {
+        "price": 29,
+        "months": 36,
+        "label": "$29/mo for 3 years with code HOLIDAYHACK, new members"
+      }
+    },
+    {
+      "id": "vz-pre-15",
+      "carrier": "Verizon Prepaid",
+      "plan": "15 GB",
+      "network": "Verizon",
+      "data": "15GB",
+      "price": 35,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 15,
+      "intlWide": false,
+      "notes": [
+        "Price needs Auto Pay"
+      ],
+      "link": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "source": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "promo": {
+        "price": 45,
+        "months": 1,
+        "label": "First month is $45"
+      },
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "vz-pre-unl",
+      "carrier": "Verizon Prepaid",
+      "plan": "Unlimited",
+      "network": "Verizon",
+      "data": "Unlimited",
+      "price": 50,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [
+        "Price needs Auto Pay"
+      ],
+      "link": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "source": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "addLine": 30,
+      "promo": {
+        "price": 60,
+        "addLine": 40,
+        "months": 1,
+        "label": "First month is $60"
+      },
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "vz-pre-plus",
+      "carrier": "Verizon Prepaid",
+      "plan": "Unlimited Plus",
+      "network": "Verizon",
+      "data": "Unlimited, 50GB fast",
+      "price": 60,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 50,
+      "intlWide": true,
+      "notes": [
+        "Price needs Auto Pay"
+      ],
+      "link": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "source": "https://www.verizon.com/prepaid/plans/phone-plans/",
+      "addLine": 40,
+      "promo": {
+        "price": 70,
+        "addLine": 50,
+        "months": 1,
+        "label": "First month is $70"
+      },
+      "intl": "180 minutes a month to one country you pick"
+    },
+    {
+      "id": "vz-welcome",
+      "carrier": "Verizon",
+      "plan": "Unlimited Welcome",
+      "network": "Verizon",
+      "data": "Unlimited",
+      "price": 65,
+      "taxesIncluded": false,
+      "noCreditCheck": false,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [
+        "Postpaid: may ask for an SSN or a deposit",
+        "Price needs Auto Pay ($75 without)",
+        "$40 activation fee per line",
+        "Verizon's own monthly fees are extra and not counted here"
+      ],
+      "link": "https://www.verizon.com/plans/unlimited/myplan/",
+      "source": "https://www.verizon.com/plans/unlimited/myplan/",
+      "lineTotals": {
+        "2": 110,
+        "3": 120,
+        "4": 120
+      },
+      "oneTimeFee": 40,
+      "intl": "Not included; texts to 200+ countries"
+    },
+    {
+      "id": "usm-gig-5",
+      "carrier": "US Mobile",
+      "plan": "By the Gig 5GB",
+      "network": "Choice of 3 networks",
+      "data": "5GB, shared by everyone on the plan",
+      "price": 15,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 5,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://www.usmobile.com/plans",
+      "source": "https://www.usmobile.com/plans",
+      "addLine": 8,
+      "sharedData": true,
+      "intl": "International calls included, minutes vary by country"
+    },
+    {
+      "id": "usm-flex",
+      "carrier": "US Mobile",
+      "plan": "Unlimited Flex, paid yearly",
+      "network": "Choice of 3 networks",
+      "data": "10GB fast, then slower",
+      "price": 17.5,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 10,
+      "intlWide": true,
+      "notes": [
+        "$210 for 12 months"
+      ],
+      "link": "https://www.usmobile.com/plans",
+      "source": "https://www.usmobile.com/plans",
+      "upfrontMonths": 12,
+      "intl": "Calls to 200+ destinations, minutes vary by country"
+    },
+    {
+      "id": "usm-starter",
+      "carrier": "US Mobile",
+      "plan": "Unlimited Starter",
+      "network": "Choice of 3 networks",
+      "data": "Unlimited, 70GB fast",
+      "price": 25,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 70,
+      "intlWide": false,
+      "notes": [],
+      "link": "https://www.usmobile.com/plans",
+      "source": "https://www.usmobile.com/plans",
+      "intl": "Not included; $3/mo add-on"
+    },
+    {
+      "id": "usm-starter-year",
+      "carrier": "US Mobile",
+      "plan": "Unlimited Starter, paid yearly",
+      "network": "Choice of 3 networks",
+      "data": "Unlimited, 70GB fast",
+      "price": 22.5,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 70,
+      "intlWide": true,
+      "notes": [
+        "$270 for 12 months"
+      ],
+      "link": "https://www.usmobile.com/plans",
+      "source": "https://www.usmobile.com/plans",
+      "upfrontMonths": 12,
+      "intl": "Calls to 200+ destinations, minutes vary by country"
+    },
+    {
+      "id": "cricket-10",
+      "carrier": "Cricket",
+      "plan": "Sensible 10GB",
+      "network": "AT&T",
+      "data": "10GB",
+      "price": 30,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": false,
+      "fastGB": 10,
+      "intlWide": false,
+      "notes": [
+        "Price needs Auto Pay",
+        "Free to activate online, $25 in a store"
+      ],
+      "link": "https://www.cricketwireless.com/plans/phone",
+      "source": "https://www.cricketwireless.com/plans/phone",
+      "lineTotals": {
+        "2": 60,
+        "3": 90,
+        "4": 120
+      },
+      "promo": {
+        "price": 35,
+        "months": 1,
+        "lineTotals": {
+          "2": 65,
+          "3": 95,
+          "4": 125
+        },
+        "label": "First month is $5 more"
+      },
+      "intl": "Not included"
+    },
+    {
+      "id": "cricket-select",
+      "carrier": "Cricket",
+      "plan": "Select Unlimited",
+      "network": "AT&T",
+      "data": "Unlimited",
+      "price": 35,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [
+        "Price needs Auto Pay",
+        "Free to activate online, $25 in a store"
+      ],
+      "link": "https://www.cricketwireless.com/plans/phone",
+      "source": "https://www.cricketwireless.com/plans/phone",
+      "lineTotals": {
+        "2": 65,
+        "3": 90,
+        "4": 100
+      },
+      "promo": {
+        "price": 40,
+        "months": 1,
+        "lineTotals": {
+          "2": 70,
+          "3": 95,
+          "4": 105
+        },
+        "label": "First month is $5 more"
+      },
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "cricket-12mo",
+      "carrier": "Cricket",
+      "plan": "12-Month Unlimited",
+      "network": "AT&T",
+      "data": "Unlimited",
+      "price": 25,
+      "taxesIncluded": true,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": false,
+      "notes": [
+        "Online only, bring your own phone",
+        "Payment is not refundable"
+      ],
+      "link": "https://www.cricketwireless.com/plans/phone/multi-month",
+      "source": "https://www.cricketwireless.com/plans/phone/multi-month",
+      "upfrontMonths": 12,
+      "maxLines": 1,
+      "promo": {
+        "price": 15,
+        "months": 12,
+        "label": "New customers: first 12 months for $180, then $300 a year"
+      },
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "att-pre-12",
+      "carrier": "AT&T Prepaid",
+      "plan": "12-month Unlimited",
+      "network": "AT&T",
+      "data": "Unlimited, 16GB fast",
+      "price": 20,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 16,
+      "intlWide": false,
+      "notes": [
+        "$240 for 12 months"
+      ],
+      "link": "https://www.att.com/prepaid/plans/",
+      "source": "https://www.att.com/prepaid/plans/",
+      "upfrontMonths": 12,
+      "maxLines": 1,
+      "feePerLine": 0.22,
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "att-pre-unl",
+      "carrier": "AT&T Prepaid",
+      "plan": "Unlimited",
+      "network": "AT&T",
+      "data": "Unlimited, slow (3Mbps)",
+      "price": 25,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 0,
+      "intlWide": false,
+      "notes": [
+        "Price locked for 5 years"
+      ],
+      "link": "https://www.att.com/prepaid/plans/",
+      "source": "https://www.att.com/prepaid/plans/",
+      "maxLines": 1,
+      "feePerLine": 2.63,
+      "intl": "Not included; texts to 230+ countries"
+    },
+    {
+      "id": "att-pre-ultra",
+      "carrier": "AT&T Prepaid",
+      "plan": "Unlimited Ultra",
+      "network": "AT&T",
+      "data": "Unlimited, full speed",
+      "price": 60,
+      "taxesIncluded": false,
+      "noCreditCheck": true,
+      "unlimited": true,
+      "fastGB": 999,
+      "intlWide": true,
+      "notes": [],
+      "link": "https://www.att.com/prepaid/plans/",
+      "source": "https://www.att.com/prepaid/plans/",
+      "feePerLine": 2.63,
+      "lineTotals": {
+        "2": 110,
+        "3": 160,
+        "4": 200,
+        "5": 240
+      },
+      "promo": {
+        "price": 45,
+        "months": 6,
+        "lineTotals": {
+          "2": 110,
+          "3": 160,
+          "4": 200,
+          "5": 240
+        },
+        "label": "$45/mo for the first 6 months, one new line only, then $60"
+      },
+      "intl": "500 minutes a month to 30+ countries"
+    },
+    {
+      "id": "att-value",
+      "carrier": "AT&T",
+      "plan": "Value 2.0",
+      "network": "AT&T",
+      "data": "Unlimited, 5GB fast",
+      "price": 50,
+      "taxesIncluded": false,
+      "noCreditCheck": false,
+      "unlimited": true,
+      "fastGB": 5,
+      "intlWide": false,
+      "notes": [
+        "Postpaid: a deposit may apply",
+        "Price needs AutoPay and paperless billing",
+        "$35 activation fee per line"
+      ],
+      "link": "https://www.att.com/plans/unlimited-data-plans/",
+      "source": "https://www.att.com/plans/unlimited-data-plans/",
+      "lineTotals": {
+        "2": 90,
+        "3": 105,
+        "4": 120
+      },
+      "oneTimeFee": 35,
+      "feePerLine": 4.99,
+      "intl": "Calls to Mexico and Canada"
+    },
+    {
+      "id": "fi-essentials",
+      "carrier": "Google Fi",
+      "plan": "Unlimited Essentials",
+      "network": "T-Mobile",
+      "data": "Unlimited, 30GB fast",
+      "price": 35,
+      "taxesIncluded": false,
+      "noCreditCheck": false,
+      "unlimited": true,
+      "fastGB": 30,
+      "intlWide": false,
+      "notes": [
+        "Fi's site doesn't say whether it needs an SSN"
+      ],
+      "link": "https://fi.google.com/about/plans",
+      "source": "https://fi.google.com/about/plans",
+      "lineTotals": {
+        "2": 60,
+        "3": 80,
+        "4": 90
+      },
+      "promo": {
+        "price": 18,
+        "months": 12,
+        "lineTotals": {
+          "2": 30,
+          "3": 40,
+          "4": 45
+        },
+        "label": "Half price for 12 months if you bring your own phone, offer ends Dec 1"
+      },
+      "intl": "Not included; per-minute rates"
+    },
+    {
+      "id": "fi-standard",
+      "carrier": "Google Fi",
+      "plan": "Unlimited Standard",
+      "network": "T-Mobile",
+      "data": "Unlimited, 50GB fast",
+      "price": 50,
+      "taxesIncluded": false,
+      "noCreditCheck": false,
+      "unlimited": true,
+      "fastGB": 50,
+      "intlWide": false,
+      "notes": [
+        "Fi's site doesn't say whether it needs an SSN"
+      ],
+      "link": "https://fi.google.com/about/plans",
+      "source": "https://fi.google.com/about/plans",
+      "lineTotals": {
+        "2": 80,
+        "3": 90,
+        "4": 100
+      },
+      "promo": {
+        "price": 25,
+        "months": 12,
+        "lineTotals": {
+          "2": 40,
+          "3": 45,
+          "4": 50
+        },
+        "label": "Half price for 12 months if you bring your own phone, offer ends Dec 1"
+      },
+      "intl": "Calls to Mexico and Canada"
+    }
+  ]
+}

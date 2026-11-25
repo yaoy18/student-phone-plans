@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Compare US phone plans for international students by real yearly cost.">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Student Phone Plans</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow column, two views. Find: six inputs, three picks, a ranked bar list. Compare: up to four plans, two charts, details. */
+:root {
+  --bg: #fbfcfc;
+  --surface: #f1f4f4;
+  --fg: #14201f;
+  --muted: #5d6b69;
+  --line: #dde3e2;
+  --accent: #0b6b5d;
+  --accent-soft: #e2f1ee;
+  --series-a: #2a78d6;   /* chart colors, in fixed order: plan A-D, or advertised/extra in the list */
+  --series-b: #eb6834;
+  --series-c: #1baf7a;
+  --series-d: #eda100;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101615; --surface: #19211f; --fg: #e8eeed; --muted: #94a3a0;
+    --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b;
+    --series-a: #3987e5; --series-b: #d95926; --series-c: #199e70; --series-d: #c98500; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101615; --surface: #19211f; --fg: #e8eeed; --muted: #94a3a0;
+  --line: #2a3432; --accent: #5fcab6; --accent-soft: #17302b;
+  --series-a: #3987e5; --series-b: #d95926; --series-c: #199e70; --series-d: #c98500; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+}
+.page {
+  max-width: 760px; margin: 0 auto;
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px;
+}
+h1 { font-family: var(--font-display); font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+.sub { color: var(--muted); margin: 6px 0 0; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.view { display: flex; flex-direction: column; gap: 28px; outline: 0; }
+a { color: var(--accent); }
+a:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible, .chart:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+nav { display: flex; gap: 24px; border-bottom: 1px solid var(--line); }
+nav a { color: var(--muted); text-decoration: none; padding: 12px 0; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+nav a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--fg); }
+
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px 24px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font-size: 14px; color: var(--muted); }
+.money { display: flex; align-items: center; gap: 4px; border-bottom: 2px solid var(--fg); height: 48px; }
+.money span { font-family: var(--font-display); font-size: 24px; }
+.money input {
+  font-family: var(--font-display); font-size: 24px; font-weight: 500; color: var(--fg);
+  background: transparent; border: 0; outline: 0; width: 100%; min-width: 0; height: 100%; padding: 0;
+  font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+}
+.money input::-webkit-outer-spin-button, .money input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.money:focus-within { outline: 2px solid var(--accent); outline-offset: 4px; border-color: var(--accent); }
+.money small { color: var(--muted); white-space: nowrap; font-size: 14px; }
+select {
+  font: inherit; font-size: 16px; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--muted); border-radius: 8px; height: 48px; padding: 0 10px; width: 100%; min-width: 0;
+}
+button {
+  font: inherit; font-size: 15px; font-weight: 500; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--muted); border-radius: 8px; min-height: 48px; padding: 0 14px; cursor: pointer;
+}
+button:disabled { opacity: 0.4; cursor: default; }
+.hint { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+.hint.basis { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin-top: 4px; }
+.hint.basis a { min-height: 44px; display: inline-flex; align-items: center; font-weight: 500; }
+
+.picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.pick { background: var(--accent-soft); border-radius: 10px; padding: 16px 16px 6px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pick .why { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
+.pick .name { font-weight: 600; }
+.pick .price { font-family: var(--font-display); font-size: 24px; font-weight: 600; }
+.pick .price small { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--muted); }
+.meta { font-size: 14px; color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; gap: 0 22px; margin-top: auto; }
+.links a { font-size: 15px; font-weight: 500; min-height: 44px; display: inline-flex; align-items: center; }
+.empty { background: var(--surface); border-radius: 10px; padding: 16px; color: var(--muted); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); margin: 0 0 4px; }
+.legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.sw.mark { width: 2px; height: 16px; border-radius: 0; background: var(--fg); }
+.s-a { background: var(--series-a); } .s-b { background: var(--series-b); }
+.s-c { background: var(--series-c); } .s-d { background: var(--series-d); }
+.badge {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 22px; height: 22px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #fff;
+}
+.badge.s-d { color: #0b0b0b; }
+
+.plans { list-style: none; margin: 0; padding: 0; }
+.plan { border-top: 1px solid var(--line); padding: 14px 0 2px; display: flex; flex-direction: column; gap: 4px; }
+.plan .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.plan .name { font-weight: 600; }
+.plan .cost { font-family: var(--font-display); font-weight: 600; font-size: 18px; white-space: nowrap; }
+.plan .cost small { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.tag { display: inline-block; font-size: 13px; padding: 1px 6px; border-radius: 4px; background: var(--surface); color: var(--muted); white-space: nowrap; }
+.tag.good { background: var(--accent-soft); color: var(--accent); }
+.track { position: relative; display: flex; gap: 2px; height: 12px; margin: 6px 0 2px; }
+.seg { height: 12px; min-width: 3px; }
+.seg:last-of-type { border-radius: 0 4px 4px 0; }
+.seg:hover { filter: brightness(1.15); }
+.budget-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--fg); }
+details.more > summary { font-weight: 500; cursor: pointer; padding: 12px 0; border-top: 1px solid var(--line); }
+
+.slots { display: flex; flex-direction: column; gap: 10px; }
+.slot { display: flex; align-items: center; gap: 10px; }
+.slot select { flex: 1; }
+.slot .rm { width: 48px; padding: 0; font-size: 20px; line-height: 1; flex: none; }
+.field.span { margin-top: 16px; }
+.span-row { display: flex; align-items: center; gap: 16px; }
+.span-row .money { width: 120px; flex: none; }
+input[type="range"] { flex: 1; min-width: 0; height: 48px; accent-color: var(--accent); }
+.verdict { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; text-wrap: balance; }
+.chart-title { font-weight: 600; margin: 0 0 2px; }
+.chart-sub { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+.chart { position: relative; touch-action: pan-y; border-radius: 6px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 12px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.chart .endl { fill: var(--fg); font-size: 13px; font-weight: 600; font-family: var(--font-body); }
+.chart .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .dot { stroke: var(--bg); stroke-width: 2; }
+.chart .cross { stroke: var(--muted); stroke-width: 1; }
+.st-a { stroke: var(--series-a); } .st-b { stroke: var(--series-b); } .st-c { stroke: var(--series-c); } .st-d { stroke: var(--series-d); }
+.fl-a { fill: var(--series-a); } .fl-b { fill: var(--series-b); } .fl-c { fill: var(--series-c); } .fl-d { fill: var(--series-d); }
+.readout { margin: 8px 0 0; padding: 10px 12px; background: var(--surface); border-radius: 8px; font-size: 14px; }
+.readout .when { color: var(--muted); margin-bottom: 4px; }
+.readout .r { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.readout .r b { font-variant-numeric: tabular-nums; min-width: 56px; }
+.grp { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+.grp-label { font-size: 14px; color: var(--muted); }
+.barrow { display: flex; align-items: center; gap: 8px; }
+.bar { height: 16px; min-width: 3px; border-radius: 0 4px 4px 0; flex: none; }
+.barrow .val { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+dl.details { margin: 0; }
+dl.details dt { font-size: 14px; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line); padding: 10px 0 4px; }
+dl.details .vals { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px 10px; padding-bottom: 10px; }
+dl.details .vals.stack { grid-template-columns: 1fr; }
+dl.details dd { margin: 0; display: flex; align-items: flex-start; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+dl.details dd.best .v { font-weight: 600; }
+dl.details .low { display: block; font-size: 13px; font-weight: 500; color: var(--accent); }
+
+#tip {
+  position: fixed; z-index: 20; pointer-events: none; max-width: 260px;
+  background: var(--fg); color: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.4;
+}
+footer { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+footer a { color: inherit; }
+.stale { color: var(--fg); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<main class="page">
+  <header>
+    <h1>Student Phone Plans</h1>
+    <p class="sub">US phone plans for international students. Real cost = price + tax + fees, estimated for your state.</p>
+  </header>
+
+  <nav aria-label="Pages">
+    <a href="#find" id="nav-find">Find a plan</a>
+    <a href="#compare" id="nav-compare">Compare plans</a>
+  </nav>
+
+  <div class="view" id="view-find" tabindex="-1">
+    <section aria-label="Your details">
+      <div class="controls">
+        <div class="field">
+          <label for="state">State, for tax</label>
+          <select id="state"></select>
+        </div>
+        <div class="field">
+          <label for="budget">Monthly budget, all lines</label>
+          <div class="money"><span>$</span><input id="budget" type="number" inputmode="decimal" min="1" max="999" step="1" value="30"><small>/ mo</small></div>
+        </div>
+        <div class="field">
+          <label for="data">Data needed</label>
+          <select id="data">
+            <option value="0">Any amount</option>
+            <option value="2">2 GB</option>
+            <option value="5">5 GB</option>
+            <option value="10">10 GB</option>
+            <option value="20">20 GB</option>
+            <option value="50">50 GB</option>
+            <option value="unl">Unlimited</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="calls">International calls</label>
+          <select id="calls">
+            <option value="never">Never</option>
+            <option value="sometimes">Sometimes</option>
+            <option value="often">Often</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ssn">Do you have a US SSN?</label>
+          <select id="ssn">
+            <option value="no">No, not yet</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="lines">People on the plan</label>
+          <select id="lines">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint" id="hint"></p>
+    </section>
+
+    <section>
+      <h2>Recommended for you</h2>
+      <div class="picks" id="picks"></div>
+      <p class="hint" id="status" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Plans that fit, cheapest first</h2>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sw s-a"></i>Advertised price</span>
+        <span><i class="sw s-b"></i>Extra in year 1: tax, fees, price rises</span>
+        <span><i class="sw mark"></i>Your budget for a year</span>
+      </div>
+      <ul class="plans" id="rows"></ul>
+      <details class="more" id="morefits-box">
+        <summary id="morefits-sum"></summary>
+        <ul class="plans" id="morefits"></ul>
+      </details>
+      <details class="more" id="others-box">
+        <summary id="others-sum"></summary>
+        <ul class="plans" id="others"></ul>
+      </details>
+    </section>
+  </div>
+
+  <div class="view" id="view-compare" tabindex="-1" hidden>
+    <section aria-label="Plans to compare">
+      <div class="slots" id="slots"></div>
+      <div class="field span">
+        <label for="years">Time span</label>
+        <div class="span-row">
+          <div class="money"><input id="years" type="number" inputmode="numeric" min="1" max="100" step="1" value="2"><small>years</small></div>
+          <input id="years-range" type="range" min="1" max="100" step="1" value="2" aria-label="Time span in years">
+        </div>
+      </div>
+      <p class="hint basis"><span id="cmp-basis"></span> <a href="#find">Change this</a></p>
+    </section>
+
+    <section>
+      <p class="verdict" id="verdict" role="status"></p>
+      <p class="hint" id="verdict-sub"></p>
+    </section>
+
+    <section>
+      <div class="legend" id="cmp-legend"></div>
+      <p class="chart-title">What you will have paid</p>
+      <p class="chart-sub" id="line-sub"></p>
+      <div class="chart" id="line-chart" tabindex="0" role="img"></div>
+      <div class="readout" id="readout" aria-live="polite"></div>
+    </section>
+
+    <section>
+      <p class="chart-title">Advertised price and real cost</p>
+      <p class="chart-sub">Per year.</p>
+      <div id="bar-chart"></div>
+    </section>
+
+    <section>
+      <h2>All the details</h2>
+      <dl class="details" id="cmp-details"></dl>
+    </section>
+  </div>
+
+  <footer>
+    <span id="checked"></span>
+    <span>Real cost is an estimate for the first year: the plan price, any price change during the year, one-time fees, carrier fees, and state and local wireless taxes at <span id="tax"></span> (<a href="https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/" target="_blank" rel="noopener">Tax Foundation, July 2026</a>). Your city or county can be a little higher or lower, and some carriers add a federal surcharge. Confirm the price at checkout.</span>
+    <span id="sources"></span>
+    <span>No carrier's page states its SSN or credit-check rule. Plans paid in advance are marked "No SSN needed"; ask the carrier if you are unsure.</span>
+  </footer>
+</main>
+<div id="tip" hidden></div>
+
+<script>
+// Seed copy of plans.json, so the page works even if the live file can't be fetched.
+let DATA = {"checked":"2026-11-24","notes":"Monthly prices in USD, read from each carrier's own website. price = regular price for one line. lineTotals = regular monthly total for that many lines; otherwise extra lines cost addLine each (or price if absent). promo = a different price for the first promo.months months (promo.lineTotals or promo.addLine for more lines). upfrontMonths = months you must prepay at once. feePerLine = carrier and federal fees per line per month. oneTimeFee = activation or connection charge per line. maxLines = most lines the plan allows. sharedData = the data allowance is split across lines. fastGB = full-speed data per month (999 = no cap stated). intlWide = calls to other countries are included. noCreditCheck = prepaid; no carrier page states its SSN policy.","taxes":{"what":"Average state and local wireless tax rate, percent of the bill. Excludes the federal surcharge.","asOf":"July 2026","source":"https://taxfoundation.org/data/all/state/wireless-taxes-cell-phone-tax-rates-by-state-2026/","usAverage":14.42,"states":{"AL":12.73,"AK":14.7,"AZ":12.95,"AR":22.04,"CA":13.24,"CO":16.76,"CT":8.73,"DE":8.68,"FL":15.11,"GA":13.23,"HI":8.15,"ID":3.39,"IL":25.02,"IN":11.29,"IA":10.11,"KS":19.11,"KY":11.55,"LA":18.6,"ME":8.82,"MD":17.59,"MA":10.78,"MI":10.1,"MN":12.35,"MS":13.19,"MO":16.38,"MT":7.07,"NE":18.31,"NV":6.07,"NH":10.02,"NJ":9.34,"NM":13.81,"NY":20.64,"NC":9.14,"ND":16.5,"OH":9.81,"OK":16.42,"OR":9.57,"PA":17.88,"RI":15.77,"SC":13.9,"SD":16.78,"TN":14.03,"TX":17.49,"UT":18.18,"VT":9.17,"VA":7.84,"WA":21.85,"WV":13.22,"WI":9.32,"WY":8.45,"DC":12.29}},"plans":[{"id":"mint-6","carrier":"Mint Mobile","plan":"6GB, 12 months","network":"T-Mobile","data":"6GB","price":15,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":6,"intlWide":false,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.mintmobile.com/plans/","upfrontMonths":12,"feePerLine":1.65,"intl":"Free calls to Mexico, Canada and the UK"},{"id":"mint-17","carrier":"Mint Mobile","plan":"17GB, 12 months","network":"T-Mobile","data":"17GB","price":20,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":17,"intlWide":false,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.mintmobile.com/plans/","upfrontMonths":12,"feePerLine":1.85,"promo":{"price":15,"months":12,"label":"New customers: first 12 months at $15/mo, then the regular price"},"intl":"Free calls to Mexico, Canada and the UK"},{"id":"mint-unl","carrier":"Mint Mobile","plan":"Unlimited, 12 months","network":"T-Mobile","data":"Unlimited, 50GB fast","price":30,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":50,"intlWide":false,"notes":[],"link":"https://www.mintmobile.com/plans/","source":"https://www.mintmobile.com/plans/","upfrontMonths":12,"feePerLine":2.31,"promo":{"price":15,"months":12,"label":"New customers: first 12 months at $15/mo, then the regular price"},"intl":"Free calls to Mexico, Canada and the UK"},{"id":"ultra-8-mo","carrier":"Ultra Mobile","plan":"8GB, monthly","network":"T-Mobile","data":"8GB","price":24,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":8,"intlWide":true,"notes":[],"link":"https://www.ultramobile.com/plans/","source":"https://www.ultramobile.com/plans/","feePerLine":1.67,"intl":"Unlimited calls to 90+ countries"},{"id":"ultra-8","carrier":"Ultra Mobile","plan":"8GB, 12 months","network":"T-Mobile","data":"8GB","price":17,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":8,"intlWide":true,"notes":[],"link":"https://www.ultramobile.com/plans/","source":"https://www.ultramobile.com/plans/","upfrontMonths":12,"feePerLine":1.43,"intl":"Unlimited calls to 90+ countries","promo":{"price":8.5,"months":12,"label":"Black Friday, new customers: first 12 months for $102, then $204 a year"}},{"id":"ultra-unl","carrier":"Ultra Mobile","plan":"Unlimited, 12 months","network":"T-Mobile","data":"Unlimited, 35GB fast","price":34,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":35,"intlWide":true,"notes":[],"link":"https://www.ultramobile.com/plans/","source":"https://www.ultramobile.com/plans/","upfrontMonths":12,"feePerLine":1.85,"intl":"Unlimited calls to 90+ countries","promo":{"price":17,"months":12,"label":"Black Friday, new customers: first 12 months for $204, then $408 a year"}},{"id":"tello-2","carrier":"Tello","plan":"2GB","network":"T-Mobile","data":"2GB","price":10,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":2,"intlWide":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://tello.com/buy/custom_plans","feePerLine":0.3,"intl":"Free calls to 60+ countries, from your plan minutes"},{"id":"tello-10","carrier":"Tello","plan":"10GB","network":"T-Mobile","data":"10GB","price":15,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":10,"intlWide":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://tello.com/buy/custom_plans","feePerLine":0.3,"intl":"Free calls to 60+ countries, from your plan minutes"},{"id":"tello-20","carrier":"Tello","plan":"20GB","network":"T-Mobile","data":"20GB","price":20,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":20,"intlWide":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://tello.com/buy/custom_plans","intl":"Free calls to 60+ countries, from your plan minutes"},{"id":"tello-unl","carrier":"Tello","plan":"Unlimited","network":"T-Mobile","data":"Unlimited, 50GB fast","price":25,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":50,"intlWide":true,"notes":[],"link":"https://tello.com/buy/custom_plans","source":"https://tello.com/buy/custom_plans","feePerLine":0.3,"intl":"Free calls to 60+ countries, from your plan minutes"},{"id":"tmo-pre-15","carrier":"T-Mobile Prepaid","plan":"Starter 15GB","network":"T-Mobile","data":"15GB","price":40,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":15,"intlWide":false,"notes":["Price needs AutoPay","Prices for 2 to 4 people are without AutoPay"],"link":"https://prepaid.t-mobile.com/prepaid-plans","source":"https://prepaid.t-mobile.com/prepaid-plans","lineTotals":{"2":75,"3":105,"4":135},"promo":{"price":45,"months":1,"lineTotals":{"2":75,"3":105,"4":135},"label":"First month is $45"},"intl":"Not included; add-ons from $5/mo"},{"id":"tmo-pre-unl","carrier":"T-Mobile Prepaid","plan":"Unlimited","network":"T-Mobile","data":"Unlimited, 50GB fast","price":45,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":50,"intlWide":false,"notes":["Price needs AutoPay","Prices for 2 to 4 people are without AutoPay"],"link":"https://prepaid.t-mobile.com/prepaid-plans","source":"https://prepaid.t-mobile.com/prepaid-plans","lineTotals":{"2":80,"3":110,"4":140},"promo":{"price":50,"months":1,"lineTotals":{"2":80,"3":110,"4":140},"label":"First month is $50"},"intl":"Not included; add-ons from $5/mo"},{"id":"tmo-saver","carrier":"T-Mobile","plan":"T-Mix Saver","network":"T-Mobile","data":"Unlimited, 50GB fast","price":45,"taxesIncluded":false,"noCreditCheck":false,"unlimited":true,"fastGB":50,"intlWide":false,"notes":["Postpaid: may ask for an SSN or a deposit","Price needs AutoPay ($55 without)","$35 connection charge per line"],"link":"https://www.t-mobile.com/cell-phone-plans","source":"https://www.t-mobile.com/cell-phone-plans","lineTotals":{"2":80},"maxLines":2,"oneTimeFee":35,"feePerLine":5.49,"intl":"Not included; $0.50 a minute"},{"id":"visible","carrier":"Visible","plan":"Visible","network":"Verizon","data":"Unlimited","price":25,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":false,"notes":[],"link":"https://www.visible.com/plans","source":"https://www.visible.com/plans","intl":"Calls to Mexico and Canada","promo":{"price":19,"months":12,"label":"$19/mo for 12 months with code HOLIDAYHACK, new members"}},{"id":"visible-year","carrier":"Visible","plan":"Visible, paid yearly","network":"Verizon","data":"Unlimited","price":22.92,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":false,"notes":["$275 for 12 months"],"link":"https://www.visible.com/plans","source":"https://www.visible.com/plans","upfrontMonths":12,"intl":"Calls to Mexico and Canada"},{"id":"visible-plus","carrier":"Visible","plan":"Visible+","network":"Verizon","data":"Unlimited, never slowed","price":35,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":false,"notes":[],"link":"https://www.visible.com/plans","source":"https://www.visible.com/plans","intl":"Calls to Mexico and Canada","promo":{"price":29,"months":36,"label":"$29/mo for 3 years with code HOLIDAYHACK, new members"}},{"id":"vz-pre-15","carrier":"Verizon Prepaid","plan":"15 GB","network":"Verizon","data":"15GB","price":35,"taxesIncluded":false,"noCreditCheck":true,"unlimited":false,"fastGB":15,"intlWide":false,"notes":["Price needs Auto Pay"],"link":"https://www.verizon.com/prepaid/plans/phone-plans/","source":"https://www.verizon.com/prepaid/plans/phone-plans/","promo":{"price":45,"months":1,"label":"First month is $45"},"intl":"Calls to Mexico and Canada"},{"id":"vz-pre-unl","carrier":"Verizon Prepaid","plan":"Unlimited","network":"Verizon","data":"Unlimited","price":50,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":false,"notes":["Price needs Auto Pay"],"link":"https://www.verizon.com/prepaid/plans/phone-plans/","source":"https://www.verizon.com/prepaid/plans/phone-plans/","addLine":30,"promo":{"price":60,"addLine":40,"months":1,"label":"First month is $60"},"intl":"Calls to Mexico and Canada"},{"id":"vz-pre-plus","carrier":"Verizon Prepaid","plan":"Unlimited Plus","network":"Verizon","data":"Unlimited, 50GB fast","price":60,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":50,"intlWide":true,"notes":["Price needs Auto Pay"],"link":"https://www.verizon.com/prepaid/plans/phone-plans/","source":"https://www.verizon.com/prepaid/plans/phone-plans/","addLine":40,"promo":{"price":70,"addLine":50,"months":1,"label":"First month is $70"},"intl":"180 minutes a month to one country you pick"},{"id":"vz-welcome","carrier":"Verizon","plan":"Unlimited Welcome","network":"Verizon","data":"Unlimited","price":65,"taxesIncluded":false,"noCreditCheck":false,"unlimited":true,"fastGB":999,"intlWide":false,"notes":["Postpaid: may ask for an SSN or a deposit","Price needs Auto Pay ($75 without)","$40 activation fee per line","Verizon's own monthly fees are extra and not counted here"],"link":"https://www.verizon.com/plans/unlimited/myplan/","source":"https://www.verizon.com/plans/unlimited/myplan/","lineTotals":{"2":110,"3":120,"4":120},"oneTimeFee":40,"intl":"Not included; texts to 200+ countries"},{"id":"usm-gig-5","carrier":"US Mobile","plan":"By the Gig 5GB","network":"Choice of 3 networks","data":"5GB, shared by everyone on the plan","price":15,"taxesIncluded":true,"noCreditCheck":true,"unlimited":false,"fastGB":5,"intlWide":true,"notes":[],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/plans","addLine":8,"sharedData":true,"intl":"International calls included, minutes vary by country"},{"id":"usm-flex","carrier":"US Mobile","plan":"Unlimited Flex, paid yearly","network":"Choice of 3 networks","data":"10GB fast, then slower","price":17.5,"taxesIncluded":true,"noCreditCheck":true,"unlimited":false,"fastGB":10,"intlWide":true,"notes":["$210 for 12 months"],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/plans","upfrontMonths":12,"intl":"Calls to 200+ destinations, minutes vary by country"},{"id":"usm-starter","carrier":"US Mobile","plan":"Unlimited Starter","network":"Choice of 3 networks","data":"Unlimited, 70GB fast","price":25,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":70,"intlWide":false,"notes":[],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/plans","intl":"Not included; $3/mo add-on"},{"id":"usm-starter-year","carrier":"US Mobile","plan":"Unlimited Starter, paid yearly","network":"Choice of 3 networks","data":"Unlimited, 70GB fast","price":22.5,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":70,"intlWide":true,"notes":["$270 for 12 months"],"link":"https://www.usmobile.com/plans","source":"https://www.usmobile.com/plans","upfrontMonths":12,"intl":"Calls to 200+ destinations, minutes vary by country"},{"id":"cricket-10","carrier":"Cricket","plan":"Sensible 10GB","network":"AT&T","data":"10GB","price":30,"taxesIncluded":true,"noCreditCheck":true,"unlimited":false,"fastGB":10,"intlWide":false,"notes":["Price needs Auto Pay","Free to activate online, $25 in a store"],"link":"https://www.cricketwireless.com/plans/phone","source":"https://www.cricketwireless.com/plans/phone","lineTotals":{"2":60,"3":90,"4":120},"promo":{"price":35,"months":1,"lineTotals":{"2":65,"3":95,"4":125},"label":"First month is $5 more"},"intl":"Not included"},{"id":"cricket-select","carrier":"Cricket","plan":"Select Unlimited","network":"AT&T","data":"Unlimited","price":35,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":false,"notes":["Price needs Auto Pay","Free to activate online, $25 in a store"],"link":"https://www.cricketwireless.com/plans/phone","source":"https://www.cricketwireless.com/plans/phone","lineTotals":{"2":65,"3":90,"4":100},"promo":{"price":40,"months":1,"lineTotals":{"2":70,"3":95,"4":105},"label":"First month is $5 more"},"intl":"Calls to Mexico and Canada"},{"id":"cricket-12mo","carrier":"Cricket","plan":"12-Month Unlimited","network":"AT&T","data":"Unlimited","price":25,"taxesIncluded":true,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":false,"notes":["Online only, bring your own phone","Payment is not refundable"],"link":"https://www.cricketwireless.com/plans/phone/multi-month","source":"https://www.cricketwireless.com/plans/phone/multi-month","upfrontMonths":12,"maxLines":1,"promo":{"price":15,"months":12,"label":"New customers: first 12 months for $180, then $300 a year"},"intl":"Calls to Mexico and Canada"},{"id":"att-pre-12","carrier":"AT&T Prepaid","plan":"12-month Unlimited","network":"AT&T","data":"Unlimited, 16GB fast","price":20,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":16,"intlWide":false,"notes":["$240 for 12 months"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","upfrontMonths":12,"maxLines":1,"feePerLine":0.22,"intl":"Calls to Mexico and Canada"},{"id":"att-pre-unl","carrier":"AT&T Prepaid","plan":"Unlimited","network":"AT&T","data":"Unlimited, slow (3Mbps)","price":25,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":0,"intlWide":false,"notes":["Price locked for 5 years"],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","maxLines":1,"feePerLine":2.63,"intl":"Not included; texts to 230+ countries"},{"id":"att-pre-ultra","carrier":"AT&T Prepaid","plan":"Unlimited Ultra","network":"AT&T","data":"Unlimited, full speed","price":60,"taxesIncluded":false,"noCreditCheck":true,"unlimited":true,"fastGB":999,"intlWide":true,"notes":[],"link":"https://www.att.com/prepaid/plans/","source":"https://www.att.com/prepaid/plans/","feePerLine":2.63,"lineTotals":{"2":110,"3":160,"4":200,"5":240},"promo":{"price":45,"months":6,"lineTotals":{"2":110,"3":160,"4":200,"5":240},"label":"$45/mo for the first 6 months, one new line only, then $60"},"intl":"500 minutes a month to 30+ countries"},{"id":"att-value","carrier":"AT&T","plan":"Value 2.0","network":"AT&T","data":"Unlimited, 5GB fast","price":50,"taxesIncluded":false,"noCreditCheck":false,"unlimited":true,"fastGB":5,"intlWide":false,"notes":["Postpaid: a deposit may apply","Price needs AutoPay and paperless billing","$35 activation fee per line"],"link":"https://www.att.com/plans/unlimited-data-plans/","source":"https://www.att.com/plans/unlimited-data-plans/","lineTotals":{"2":90,"3":105,"4":120},"oneTimeFee":35,"feePerLine":4.99,"intl":"Calls to Mexico and Canada"},{"id":"fi-essentials","carrier":"Google Fi","plan":"Unlimited Essentials","network":"T-Mobile","data":"Unlimited, 30GB fast","price":35,"taxesIncluded":false,"noCreditCheck":false,"unlimited":true,"fastGB":30,"intlWide":false,"notes":["Fi's site doesn't say whether it needs an SSN"],"link":"https://fi.google.com/about/plans","source":"https://fi.google.com/about/plans","lineTotals":{"2":60,"3":80,"4":90},"promo":{"price":18,"months":12,"lineTotals":{"2":30,"3":40,"4":45},"label":"Half price for 12 months if you bring your own phone, offer ends Dec 1"},"intl":"Not included; per-minute rates"},{"id":"fi-standard","carrier":"Google Fi","plan":"Unlimited Standard","network":"T-Mobile","data":"Unlimited, 50GB fast","price":50,"taxesIncluded":false,"noCreditCheck":false,"unlimited":true,"fastGB":50,"intlWide":false,"notes":["Fi's site doesn't say whether it needs an SSN"],"link":"https://fi.google.com/about/plans","source":"https://fi.google.com/about/plans","lineTotals":{"2":80,"3":90,"4":100},"promo":{"price":25,"months":12,"lineTotals":{"2":40,"3":45,"4":50},"label":"Half price for 12 months if you bring your own phone, offer ends Dec 1"},"intl":"Calls to Mexico and Canada"}]};
+
+const $ = (id) => document.getElementById(id);
+const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+const STATE_NAMES = { AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia", FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming" };
+const DATA_NEEDS = { "0": "", "2": "2 GB is enough if you are mostly on Wi-Fi.", "5": "5 GB covers maps, chat and music.", "10": "10 GB adds some video.", "20": "20 GB covers video most days.", "50": "50 GB is heavy use, with hotspot.", "unl": "Unlimited here means at least 50 GB at full speed." };
+const CALLS = ["never", "sometimes", "often"];
+const SLOTS = ["a", "b", "c", "d"];
+const MAX_CMP = 4;
+const state = { budget: 30, lines: 1, where: "", data: "5", calls: "never", ssn: "no", cmp: [], years: 2 };
+try {
+  const saved = JSON.parse(localStorage.getItem("spp") || "{}");
+  if (saved.budget > 0) state.budget = saved.budget;
+  if (saved.lines >= 1 && saved.lines <= 5) state.lines = saved.lines;
+  if (STATE_NAMES[saved.where]) state.where = saved.where;
+  if (saved.data in DATA_NEEDS) state.data = saved.data;
+  if (CALLS.includes(saved.calls)) state.calls = saved.calls;
+  if (saved.ssn === "yes" || saved.ssn === "no") state.ssn = saved.ssn;
+  if (saved.years >= 1 && saved.years <= 100) state.years = Math.round(saved.years);
+  if (Array.isArray(saved.cmp)) state.cmp = saved.cmp.filter((x) => typeof x === "string").slice(0, MAX_CMP);
+} catch (e) {}
+
+/* Cost of one plan for `lines` people at a tax rate, month by month for `months` (at least two years). Pure. */
+function costs(p, lines, taxPct, months) {
+  months = Math.max(24, months || 24);
+  const known = p.lineTotals && p.lineTotals[lines];
+  const addLine = p.addLine != null ? p.addLine : p.price;
+  const regular = known != null ? known : p.price + addLine * (lines - 1);
+  const promoMonths = p.promo ? p.promo.months : 0;
+  const promoKnown = p.promo && p.promo.lineTotals && p.promo.lineTotals[lines];
+  const promoMonthly = !p.promo ? regular : promoKnown != null ? promoKnown
+    : p.promo.price + (p.promo.addLine != null ? p.promo.addLine : p.promo.price) * (lines - 1);
+  const taxRate = p.taxesIncluded ? 0 : taxPct / 100;
+  const feeMonthly = (p.feePerLine || 0) * lines;
+  const oneTime = (p.oneTimeFee || 0) * lines;                               // activation, SIM: paid once at the start
+  const service = (m) => (m < promoMonths ? promoMonthly : regular);          // before tax, month 0 onward
+  const charge = (m) => service(m) * (1 + taxRate) + feeMonthly;              // what the month costs
+  let year1 = oneTime, year2 = 0, service1 = 0;
+  for (let m = 0; m < 12; m++) { year1 += charge(m); service1 += service(m); }
+  for (let m = 12; m < 24; m++) year2 += charge(m);
+  // When each payment is actually made: every month, or in prepaid blocks.
+  const block = p.upfrontMonths || 0;
+  const cum = [0];
+  for (let m = 0; m < months; m++) {
+    let pay = charge(m);
+    if (block) { pay = 0; if (m % block === 0) for (let k = m; k < m + block; k++) pay += charge(k); }
+    if (m === 0) pay += oneTime;
+    cum.push(cum[m] + pay);
+  }
+  // Advertised price for this many lines: the lower of the regular and the promo monthly price.
+  const advertised = Math.min(regular, promoMonthly) * 12;
+  return {
+    advertised, year1, year2, monthly: year1 / 12, monthly2: year2 / 12, cum, oneTime,
+    rise: Math.max(0, service1 - advertised), taxfees: Math.max(0, year1 - oneTime - service1),
+    guessedLines: lines > 1 && known == null && p.lineTotals != null,
+    upfront: block ? cum[1] : 0,
+    dueAtStart: (block || oneTime) ? cum[1] : 0,
+  };
+}
+
+/* Why a plan doesn't fit, most important first. Empty list = good fit. Pure. */
+function misses(p, c, s) {
+  const out = [];
+  if (s.ssn === "no" && !p.noCreditCheck) out.push("Needs SSN or deposit");
+  if (p.maxLines && s.lines > p.maxLines) out.push(p.maxLines === 1 ? "One person only" : `Up to ${p.maxLines} people`);
+  else if (c.guessedLines) out.push(`Price not checked for ${s.lines} people`);
+  if (c.monthly > s.budget) out.push("Over budget");
+  else if (c.monthly2 > s.budget) out.push("Over budget in year 2");
+  const gb = p.sharedData ? p.fastGB / s.lines : p.fastGB;   // shared allowances are split across lines
+  if (s.data === "unl" ? !(p.unlimited && gb >= 50) : gb < +s.data) out.push("Not enough data");
+  if (s.calls === "often" && !p.intlWide) out.push("Few calls abroad");
+  return out;
+}
+
+function taxFor(where) {
+  const t = DATA.taxes || {};
+  const r = t.states && t.states[where];
+  return r != null ? r : (t.usAverage != null ? t.usAverage : 14);
+}
+
+const full = (p) => p.plan === p.carrier ? p.carrier : `${p.carrier} ${p.plan}`;
+const people = (n) => `${n} ${n === 1 ? "person" : "people"}`;
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+/* All plans with costs and fit, cheapest first; ties go to the plan with less to pay at the start. */
+function ranked() {
+  const taxPct = taxFor(state.where);
+  return DATA.plans.map((p) => {
+    const c = costs(p, state.lines, taxPct);
+    return { p, c, miss: misses(p, c, state) };
+  }).sort((a, b) => Math.round(a.c.year1) - Math.round(b.c.year1) || a.c.dueAtStart - b.c.dueAtStart || full(a.p).localeCompare(full(b.p)));
+}
+
+/* The sum behind a plan's first-year cost, as readable text. */
+function breakdown(c) {
+  const parts = [`${usd(c.advertised)} advertised`];
+  if (c.rise >= 1) parts.push(`+ ${usd(c.rise)} price change`);
+  if (c.oneTime >= 1) parts.push(`+ ${usd(c.oneTime)} one-time fees`);
+  if (c.taxfees >= 1) parts.push(`+ ${usd(c.taxfees)} tax and fees`);
+  return parts.join(" ") + (c.taxfees >= 1 ? "" : ", tax included");
+}
+const conditions = (p, c) => [p.promo ? p.promo.label : "", ...(p.notes || [])].filter(Boolean);
+
+function planRow({ p, c, miss }, scale) {
+  const extra = c.year1 - c.advertised;
+  const mark = state.budget * 12 / scale;
+  const cond = conditions(p, c);
+  if (state.calls !== "never") cond.push(p.intl || "International calls not listed");
+  return `
+    <li class="plan">
+      <div class="top">
+        <span class="name">${esc(full(p))}</span>
+        <span class="cost num">about ${usd(c.monthly)}<small> / mo</small></span>
+      </div>
+      <div class="meta"><span class="tag${miss.length ? "" : " good"}">${esc(miss[0] || "Good fit")}</span> ${esc(p.data)} · ${esc(/network/i.test(p.network) ? p.network : p.network + " network")} · ${p.noCreditCheck ? "No SSN needed" : "May need an SSN"}</div>
+      <div class="track" aria-hidden="true">
+        <span class="seg s-a" style="width:${(c.advertised / scale * 100).toFixed(2)}%" data-tip="${esc(full(p))}: ${usd(c.advertised)} advertised per year"></span>
+        ${extra >= 1 ? `<span class="seg s-b" style="width:${(extra / scale * 100).toFixed(2)}%" data-tip="${esc(full(p))}: ${usd(extra)} extra in year 1"></span>` : ""}
+        ${mark <= 1 ? `<span class="budget-mark" style="left:${(mark * 100).toFixed(2)}%"></span>` : ""}
+      </div>
+      <div class="meta num">${breakdown(c)} = <strong>${usd(c.year1)}</strong> in year 1${Math.round(c.year2) !== Math.round(c.year1) ? `, then ${usd(c.year2)} in year 2` : ""}</div>
+      ${c.dueAtStart ? `<div class="meta num">Pay ${usd(c.dueAtStart)} at the start</div>` : ""}
+      ${cond.length ? `<div class="meta">${cond.map(esc).join(". ")}.</div>` : ""}
+      <div class="links">
+        <a href="${esc(p.link)}" target="_blank" rel="noopener" aria-label="See plan: ${esc(full(p))}, opens in a new tab">See plan</a>
+        <a href="#compare" data-compare="${esc(p.id)}" aria-label="Compare: ${esc(full(p))}">Compare</a>
+      </div>
+    </li>`;
+}
+
+function render() {
+  const taxPct = taxFor(state.where);
+  const all = ranked();
+  const fits = all.filter((x) => !x.miss.length);
+  const others = all.filter((x) => x.miss.length);
+
+  const picks = [];
+  const add = (why, x) => { if (x && !picks.some((k) => k.x.p.id === x.p.id)) picks.push({ why, x }); };
+  add("Cheapest fit", fits[0]);
+  if (state.calls === "sometimes") add("Cheapest with calls abroad", fits.find((x) => x.p.intlWide));
+  // "Most data": plans at 50 GB or more count as one tier, so an unstated cap never outranks a stated one.
+  add("Most data in budget", [...fits].sort((a, b) => Math.min(b.p.fastGB, 50) - Math.min(a.p.fastGB, 50) || a.c.year1 - b.c.year1)[0]);
+  add("Cheapest with nothing extra at the start", fits.find((x) => !x.c.dueAtStart));
+
+  if (picks.length) {
+    $("picks").innerHTML = picks.slice(0, 3).map(({ why, x }) => `
+      <div class="pick">
+        <span class="why">${esc(why)}</span>
+        <span class="name">${esc(full(x.p))}</span>
+        <span class="price num">about ${usd(x.c.monthly)}<small> / mo, year 1 average</small></span>
+        <span class="meta num">${breakdown(x.c)} = ${usd(x.c.year1)}</span>
+        <span class="meta">${esc(x.p.data)} · ${x.p.noCreditCheck ? "No SSN needed" : "May need an SSN"}</span>
+        ${Math.round(x.c.year2) !== Math.round(x.c.year1) ? `<span class="meta num">Year 2: about ${usd(x.c.monthly2)} / mo (${usd(x.c.year2)})</span>` : ""}
+        ${x.c.dueAtStart ? `<span class="meta num">Pay ${usd(x.c.dueAtStart)} at the start</span>` : ""}
+        ${conditions(x.p, x.c).map((t) => `<span class="meta">${esc(t)}</span>`).join("")}
+        ${state.calls !== "never" && x.p.intl ? `<span class="meta">${esc(x.p.intl)}</span>` : ""}
+        <span class="links">
+          <a href="${esc(x.p.link)}" target="_blank" rel="noopener" aria-label="See plan: ${esc(full(x.p))}, opens in a new tab">See plan</a>
+          <a href="#compare" data-compare="${esc(x.p.id)}" aria-label="Compare: ${esc(full(x.p))}">Compare</a>
+        </span>
+      </div>`).join("");
+  } else {
+    // Closest = cheapest plan whose only problem is the budget.
+    const near = all.find((x) => x.miss.length === 1 && /^Over budget/.test(x.miss[0])) || all[0];
+    const overBy = Math.max(near.c.monthly, near.c.monthly2) - state.budget;
+    $("picks").innerHTML = `<div class="empty">No plan matches everything you picked. The closest is ${esc(full(near.p))} at about ${usd(near.c.monthly)} a month${overBy > 0 ? `, ${usd(overBy)} over your budget at its highest` : ""}.</div>`;
+  }
+
+  const checked = new Date(DATA.checked + "T12:00:00");
+  const checkedText = checked.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  $("status").textContent = `${fits.length} of ${all.length} plans fit what you picked. Prices checked ${checkedText}.`;
+
+  const fitScale = Math.max(state.budget * 12, ...fits.map((x) => x.c.year1));
+  const SHOWN = 6;   // keep the page short on a phone; the rest open with one tap
+  $("rows").innerHTML = fits.length ? fits.slice(0, SHOWN).map((x) => planRow(x, fitScale)).join("") : `<li class="plan meta">No plan fits yet. Try a higher budget or less data.</li>`;
+  const moreFits = fits.slice(SHOWN);
+  $("morefits").innerHTML = moreFits.map((x) => planRow(x, fitScale)).join("");
+  $("morefits-sum").textContent = `${moreFits.length} more ${moreFits.length === 1 ? "plan that fits" : "plans that fit"}`;
+  $("morefits-box").hidden = !moreFits.length;
+  const otherScale = Math.max(1, ...others.map((x) => x.c.year1));
+  $("others").innerHTML = others.map((x) => planRow(x, otherScale)).join("");
+  $("others-sum").textContent = `${others.length} more ${others.length === 1 ? "plan" : "plans"} that don't fit, and why`;
+  $("others-box").hidden = !others.length;
+
+  const hints = [DATA_NEEDS[state.data]];
+  if (state.calls !== "never") hints.push("Calls over WhatsApp, WeChat or FaceTime use data, not plan minutes. Included international calls cover a set list of countries, so check that yours is on the carrier's list.");
+  if (state.ssn === "no") hints.push("An SSN is a US Social Security number. Without one, prepaid plans are the simple choice.");
+  $("hint").textContent = hints.filter(Boolean).join(" ");
+
+  const days = Math.floor((Date.now() - checked.getTime()) / 86400000);
+  $("checked").innerHTML = `Prices checked ${checkedText}.` + (days > 14 ? ` <span class="stale">That was ${days} days ago, so some prices may have changed.</span>` : "");
+  $("tax").textContent = taxPct.toFixed(1) + "%, the " + (STATE_NAMES[state.where] ? STATE_NAMES[state.where] + " average" : "US average");
+  const hosts = [...new Set(DATA.plans.map((p) => { try { return new URL(p.source).hostname.replace(/^www\./, ""); } catch (e) { return ""; } }).filter(Boolean))].sort();
+  $("sources").textContent = "Prices read from each carrier's own website: " + hosts.join(", ") + ".";
+  renderCompare(all);
+}
+
+/* ---------- Compare view: two to four plans ---------- */
+
+function niceTop(max) {
+  const steps = [25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 100000, 200000, 250000, 500000];
+  const step = steps.find((s) => max / s <= 4) || 1000000;
+  return { step, top: Math.max(step, Math.ceil(max / step) * step) };
+}
+const axisUsd = (v) => v >= 10000 ? "$" + (v / 1000).toLocaleString("en-US") + "K" : usd(v);
+const spanText = (years) => years === 1 ? "one year" : `${years} years`;
+function whenText(month) {
+  if (month % 12 === 0) return `After ${spanText(month / 12)}`;
+  return month < 12 ? `After month ${month}` : `After ${Math.floor(month / 12)} yr ${month % 12} mo`;
+}
+/* Tick positions (in months) and labels for the time axis. */
+function timeTicks(months) {
+  const years = months / 12;
+  if (years <= 2) {
+    const stepM = years === 1 ? 3 : 6, out = [];
+    for (let v = 0; v <= months; v += stepM) out.push([v, v === 0 ? "Start" : v % 12 === 0 ? `${v / 12} yr` : `${v} mo`]);
+    return out;
+  }
+  const stepY = [1, 2, 5, 10, 20, 25].find((s) => years / s <= 5) || 25, out = [[0, "Start"]];
+  for (let y = stepY; y <= years; y += stepY) out.push([y * 12, `${y} yr`]);
+  return out;
+}
+
+/* A smooth curve through the points that never dips or overshoots (monotone cubic). Points are [x, y] in pixels. */
+function smoothPath(pts) {
+  const n = pts.length;
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  if (n < 3) { for (let i = 1; i < n; i++) d += `L${pts[i][0].toFixed(1)},${pts[i][1].toFixed(1)}`; return d; }
+  const dx = [], slope = [], t = new Array(n);
+  for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; slope[i] = (pts[i + 1][1] - pts[i][1]) / dx[i]; }
+  t[0] = slope[0]; t[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i++) t[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = t[i] / slope[i], b = t[i + 1] / slope[i], h = a * a + b * b;
+    if (h > 9) { const k = 3 / Math.sqrt(h); t[i] = k * a * slope[i]; t[i + 1] = k * b * slope[i]; }
+  }
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], third = dx[i] / 3;
+    d += `C${(x0 + third).toFixed(1)},${(y0 + t[i] * third).toFixed(1)} ${(x1 - third).toFixed(1)},${(y1 - t[i + 1] * third).toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  return d;
+}
+
+let lineState = null;   // what the line chart is showing, for the read-out
+function drawLine(sel, months) {
+  const el = $("line-chart");
+  const W = Math.max(280, el.clientWidth), H = 230, m = { l: 48, r: 26, t: 12, b: 26 };
+  const { step, top } = niceTop(Math.max(...sel.map((s) => s.c.cum[months])));
+  const x = (v) => m.l + v / months * (W - m.l - m.r);
+  const y = (v) => H - m.b - v / top * (H - m.t - m.b);
+  // One point per month up to three years, then fewer, so long spans stay smooth and light.
+  const every = Math.max(1, Math.ceil(months / 36));
+  const path = (cum) => {
+    const pts = [];
+    for (let i = 0; i < months; i += every) pts.push([x(i), y(cum[i])]);
+    pts.push([x(months), y(cum[months])]);
+    return smoothPath(pts);
+  };
+  let g = "";
+  for (let v = 0; v <= top; v += step) g += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tick" x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${axisUsd(v)}</text>`;
+  timeTicks(months).forEach(([v, label]) => {
+    const anchor = v === 0 ? "start" : v === months ? "end" : "middle";
+    g += `<text class="tick" x="${x(v)}" y="${H - 6}" text-anchor="${anchor}">${label}</text>`;
+  });
+  // Letter labels at the line ends, nudged apart so they never overlap.
+  const ends = sel.map((s) => ({ s, y: y(s.c.cum[months]) })).sort((p, q) => p.y - q.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+  const over = ends.length ? ends[ends.length - 1].y - (H - m.b) : 0;
+  if (over > 0) ends.forEach((e) => { e.y -= over; });
+  const rev = [...sel].reverse();
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">${g}
+    ${rev.map((s) => `<path class="ln st-${s.k}" d="${path(s.c.cum)}"/>`).join("")}
+    ${rev.map((s) => `<circle class="dot fl-${s.k}" r="5" cx="${x(months)}" cy="${y(s.c.cum[months])}"/>`).join("")}
+    ${ends.map((e) => `<text class="endl" x="${x(months) + 10}" y="${e.y + 4}">${e.s.letter}</text>`).join("")}
+    <g id="cross"><line class="cross" y1="${m.t}" y2="${H - m.b}"/>${rev.map((s) => `<circle class="dot fl-${s.k}" r="5" data-k="${s.k}"/>`).join("")}</g></svg>`;
+  el.setAttribute("aria-label", `Running total over ${spanText(months / 12)}. ` + sel.map((s) => `${full(s.p)} reaches ${usd(s.c.cum[months])}.`).join(" ") + " Use the left and right arrow keys to move along the time span.");
+  const month = lineState && lineState.months === months ? lineState.month : months;   // a new time span starts at its end
+  lineState = { sel, x, y, m, W, month, months };
+  showMonth(month);
+}
+
+function showMonth(month) {
+  const s = lineState; if (!s) return;
+  month = Math.min(s.months, Math.max(1, Math.round(month))); s.month = month;
+  const cross = $("line-chart").querySelector("#cross");
+  const cx = s.x(month);
+  cross.querySelector("line").setAttribute("x1", cx); cross.querySelector("line").setAttribute("x2", cx);
+  cross.querySelectorAll("circle").forEach((dot) => {
+    const it = s.sel.find((z) => z.k === dot.dataset.k);
+    dot.setAttribute("cx", cx); dot.setAttribute("cy", s.y(it.c.cum[month]));
+  });
+  const box = $("readout"); box.textContent = "";
+  const when = document.createElement("div"); when.className = "when";
+  when.textContent = whenText(month);
+  box.appendChild(when);
+  s.sel.forEach((it) => {
+    const row = document.createElement("div"); row.className = "r";
+    const badge = document.createElement("span"); badge.className = `badge s-${it.k}`; badge.textContent = it.letter;
+    const val = document.createElement("b"); val.textContent = usd(it.c.cum[month]);
+    const name = document.createElement("span"); name.textContent = full(it.p);
+    row.append(badge, val, name); box.appendChild(row);
+  });
+}
+
+function drawBars(sel) {
+  const groups = [["Advertised", "advertised"], ["Real cost, year 1", "year1"], ["Real cost, year 2", "year2"]];
+  const max = Math.max(...sel.flatMap((s) => groups.map(([, key]) => s.c[key])));
+  $("bar-chart").innerHTML = groups.map(([label, key]) => `
+    <div class="grp"><div class="grp-label">${esc(label)}</div>
+      ${sel.map((s) => `<div class="barrow" role="img" aria-label="${esc(full(s.p))}: ${usd(s.c[key])}" data-tip="${esc(full(s.p))}: ${usd(s.c[key])}, ${esc(label.toLowerCase())}">
+        <span class="badge s-${s.k}" aria-hidden="true">${s.letter}</span>
+        <span class="bar s-${s.k}" style="width:calc((100% - 104px) * ${(s.c[key] / max).toFixed(4)})"></span>
+        <span class="val" aria-hidden="true">${usd(s.c[key])}</span></div>`).join("")}
+    </div>`).join("");
+}
+
+function renderCompare(all) {
+  all = all || ranked();
+  const plans = DATA.plans;
+  const byId = (id) => plans.find((p) => p.id === id);
+  // Keep valid, distinct plans; fill up to two from the best fits.
+  const order = [...all.filter((x) => !x.miss.length), ...all.filter((x) => x.miss.length)].map((x) => x.p.id);
+  state.cmp = [...new Set(state.cmp.filter(byId))].slice(0, MAX_CMP);
+  for (const id of order) { if (state.cmp.length >= 2) break; if (!state.cmp.includes(id)) state.cmp.push(id); }
+
+  const taxPct = taxFor(state.where);
+  const months = state.years * 12;
+  const sel = state.cmp.map((id, i) => ({ p: byId(id), k: SLOTS[i], letter: SLOTS[i].toUpperCase(), c: costs(byId(id), state.lines, taxPct, months) }));
+  const n = sel.length;
+
+  // Plan pickers.
+  const focused = document.activeElement && document.activeElement.id;
+  const sorted = [...plans].sort((p, q) => full(p).localeCompare(full(q)));
+  $("slots").innerHTML = sel.map((s, i) => `
+    <div class="slot">
+      <span class="badge s-${s.k}" aria-hidden="true">${s.letter}</span>
+      <select id="cmp-${i}" data-slot="${i}" aria-label="Plan ${s.letter}">
+        ${sorted.map((p) => `<option value="${esc(p.id)}"${p.id === s.p.id ? " selected" : ""}>${esc(full(p))}</option>`).join("")}
+      </select>
+      <button type="button" class="rm" id="rm-${i}" data-rm="${i}" aria-label="Remove plan ${s.letter}"${n <= 2 ? " disabled" : ""}>×</button>
+    </div>`).join("")
+    + (n < MAX_CMP ? `<button type="button" id="cmp-add">Add a plan (up to ${MAX_CMP})</button>` : "");
+  if (focused && /^(cmp-|rm-)/.test(focused) && $(focused)) $(focused).focus();
+
+  $("cmp-legend").innerHTML = sel.map((s) => `<span><span class="badge s-${s.k}">${s.letter}</span>${esc(full(s.p))}</span>`).join("");
+  $("cmp-basis").textContent = `Costs are for ${people(state.lines)} in ${STATE_NAMES[state.where] || "the average US state"}.`;
+
+  const span = spanText(state.years);
+  const byTotal = [...sel].sort((a, b) => a.c.cum[months] - b.c.cum[months]);
+  const best = byTotal[0], rest = byTotal.slice(1);
+  const allSame = rest.every((s) => Math.round(s.c.cum[months]) === Math.round(best.c.cum[months]));
+  $("verdict").textContent = allSame ? `These plans cost the same over ${span}: ${usd(best.c.cum[months])}.`
+    : `Over ${span}, ${full(best.p)} costs the least: ${usd(best.c.cum[months])}.`;
+  $("verdict-sub").textContent = allSame ? "" : rest.map((s) => `${full(s.p)}: ${usd(s.c.cum[months] - best.c.cum[months])} more.`).join(" ");
+  $("line-sub").textContent = `Running total over ${span}, with tax and fees. After any promo ends, this assumes you keep the plan at today's regular price. Touch the chart to read a point in time.`;
+  if ($("years").value !== String(state.years) && document.activeElement !== $("years")) $("years").value = state.years;
+  $("years-range").value = state.years;
+
+  if (!$("view-compare").hidden) { drawLine(sel, months); drawBars(sel); }
+
+  // Details. Money rows sit side by side and mark the lowest; text rows stack.
+  const money = (label, get, mark) => ({ label, vals: sel.map((s) => usd(get(s))), raw: mark ? sel.map((s) => Math.round(get(s))) : null });
+  const text = (label, get) => ({ label, vals: sel.map(get), stack: true });
+  const rows = [
+    money(state.years === 1 ? "One year together" : `${state.years} years together`, (s) => s.c.cum[months], true),
+    money("Real cost, year 1", (s) => s.c.year1, true),
+    money("Real cost, year 2", (s) => s.c.year2, true),
+    money("Average per month, year 1", (s) => s.c.monthly, false),
+    money("Pay at the start", (s) => s.c.cum[1], true),
+    money("Advertised per year", (s) => s.c.advertised, false),
+    money("Price change in year 1", (s) => s.c.rise, false),
+    money("One-time fees", (s) => s.c.oneTime, false),
+    { label: "Tax and fees, year 1", vals: sel.map((s) => s.p.taxesIncluded && s.c.taxfees < 1 ? "Included" : usd(s.c.taxfees)), stack: n > 2 },
+    { label: "Data", vals: sel.map((s) => s.p.data), stack: n > 2 },
+    { label: "Network", vals: sel.map((s) => s.p.network), stack: n > 2 },
+    { label: "SSN", vals: sel.map((s) => s.p.noCreditCheck ? "Not needed" : "May be needed"), stack: n > 2 },
+    text("International calls", (s) => s.p.intl || "Not listed"),
+    text("Good to know", (s) => conditions(s.p, s.c).join(". ") || "Nothing extra"),
+  ];
+  $("cmp-details").style.setProperty("--n", n);
+  $("cmp-details").innerHTML = rows.map((r) => {
+    const min = r.raw ? Math.min(...r.raw) : null;
+    const tie = r.raw ? r.raw.every((v) => v === min) : true;
+    return `<dt>${esc(r.label)}</dt><div class="vals${r.stack ? " stack" : ""}">${sel.map((s, i) => {
+      const low = r.raw && !tie && r.raw[i] === min;
+      return `<dd class="num${low ? " best" : ""}"><span class="badge s-${s.k}" aria-hidden="true">${s.letter}</span><span class="sr">${esc(full(s.p))}: </span><span class="v">${esc(r.vals[i])}${low ? '<span class="low">lowest</span>' : ""}</span></dd>`;
+    }).join("")}</div>`;
+  }).join("");
+}
+
+function route(moved) {
+  const compare = location.hash === "#compare";
+  $("view-find").hidden = compare;
+  $("view-compare").hidden = !compare;
+  for (const [id, on] of [["nav-find", !compare], ["nav-compare", compare]]) {
+    if (on) $(id).setAttribute("aria-current", "page"); else $(id).removeAttribute("aria-current");
+  }
+  $("tip").hidden = true;
+  if (compare) renderCompare();
+  if (moved) { window.scrollTo(0, 0); $(compare ? "view-compare" : "view-find").focus({ preventScroll: true }); }
+}
+
+function save() { try { localStorage.setItem("spp", JSON.stringify(state)); } catch (e) {} }
+
+$("state").innerHTML = '<option value="">US average</option>'
+  + Object.keys(STATE_NAMES).sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b]))
+      .map((k) => `<option value="${k}">${STATE_NAMES[k]}</option>`).join("");
+$("state").value = state.where;
+$("data").value = state.data;
+$("calls").value = state.calls;
+$("ssn").value = state.ssn;
+$("lines").value = String(state.lines);
+$("budget").value = state.budget;
+const bind = (id, key, parse) => $(id).addEventListener("change", (e) => { state[key] = parse(e.target.value); save(); render(); });
+bind("state", "where", String);
+bind("data", "data", String);
+bind("calls", "calls", String);
+bind("ssn", "ssn", String);
+bind("lines", "lines", Number);
+$("budget").addEventListener("input", (e) => {
+  const v = parseFloat(e.target.value);
+  if (v > 0) { state.budget = v; save(); render(); }
+});
+
+// Time span for the comparison, 1 to 100 years.
+const setYears = (raw) => {
+  const v = Math.round(parseFloat(raw));
+  if (!(v >= 1)) return;
+  state.years = Math.min(100, v); save(); renderCompare();
+};
+$("years").value = state.years;
+$("years").addEventListener("input", (e) => setYears(e.target.value));
+$("years").addEventListener("blur", (e) => { e.target.value = state.years; });
+$("years-range").addEventListener("input", (e) => setYears(e.target.value));
+
+// Compare controls: change a slot, remove a slot, add a slot.
+$("slots").addEventListener("change", (e) => {
+  const i = e.target.dataset.slot; if (i == null) return;
+  const other = state.cmp.indexOf(e.target.value);
+  if (other >= 0 && other !== +i) state.cmp[other] = state.cmp[+i];   // picking a plan already shown swaps the two
+  state.cmp[+i] = e.target.value; save(); renderCompare();
+});
+$("slots").addEventListener("click", (e) => {
+  const rm = e.target.closest("[data-rm]");
+  if (rm && state.cmp.length > 2) { state.cmp.splice(+rm.dataset.rm, 1); save(); renderCompare(); return; }
+  if (e.target.id === "cmp-add" && state.cmp.length < MAX_CMP) {
+    const all = ranked();   // suggest the best remaining fit first
+    const next = [...all.filter((x) => !x.miss.length), ...all.filter((x) => x.miss.length)].map((x) => x.p.id).find((id) => !state.cmp.includes(id));
+    if (next) { state.cmp.push(next); save(); renderCompare(); const s = $("cmp-" + (state.cmp.length - 1)); if (s) s.focus(); }
+  }
+});
+// "Compare" links add the plan to the comparison (replacing the last one when it is full).
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("[data-compare]"); if (!link) return;
+  const id = link.dataset.compare;
+  if (!state.cmp.includes(id)) { if (state.cmp.length >= MAX_CMP) state.cmp.pop(); state.cmp.push(id); save(); }
+});
+
+// Line chart read-out: touch, mouse or arrow keys pick the month; it stays until you pick another.
+const chartEl = $("line-chart");
+const monthAt = (e) => { const s = lineState, r = chartEl.getBoundingClientRect(); return Math.round(((e.clientX - r.left) - s.m.l) / (s.W - s.m.l - s.m.r) * s.months); };
+chartEl.addEventListener("pointermove", (e) => { if (lineState) showMonth(monthAt(e)); });
+chartEl.addEventListener("pointerdown", (e) => { if (lineState) showMonth(monthAt(e)); });
+chartEl.addEventListener("keydown", (e) => {
+  if (!lineState || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+  const stepBy = Math.max(1, Math.round(lineState.months / 24));   // a month at a time up to two years, then coarser
+  e.preventDefault(); showMonth(lineState.month + (e.key === "ArrowRight" ? stepBy : -stepBy));
+});
+// Bar hover labels for mouse users; touch users read the same values printed beside each bar.
+document.addEventListener("pointermove", (e) => {
+  const t = e.pointerType === "mouse" && e.target.closest && e.target.closest("[data-tip]");
+  const tip = $("tip");
+  if (!t) { tip.hidden = true; return; }
+  tip.textContent = t.dataset.tip; tip.hidden = false;
+  tip.style.left = Math.max(8, Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8)) + "px";
+  tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 12) + "px";
+});
+if (window.ResizeObserver) {
+  let lastW = 0;
+  new ResizeObserver(() => { const w = chartEl.clientWidth; if (w && w !== lastW) { lastW = w; renderCompare(); } }).observe(chartEl);
+}
+window.addEventListener("hashchange", () => route(true));
+
+// Pick up newer prices whenever plans.json is republished.
+async function refresh() {
+  try {
+    const res = await fetch("plans.json", { cache: "no-store" });
+    if (!res.ok) return;
+    const fresh = await res.json();
+    if (fresh && Array.isArray(fresh.plans) && fresh.plans.length && JSON.stringify(fresh) !== JSON.stringify(DATA)) {
+      DATA = fresh; render();
+    }
+  } catch (e) {}
+}
+
+route(false); render(); refresh();
+setInterval(refresh, 30 * 60 * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+</script>
+</body>
+</html>
